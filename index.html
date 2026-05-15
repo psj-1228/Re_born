@@ -1,0 +1,2127 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StarScan 디지털 이미지 탐색</title>
+  <style>
+    :root {
+      --bg: #0d1213;
+      --panel: rgba(19, 22, 29, 0.82);
+      --panel-soft: rgba(255, 255, 255, 0.055);
+      --panel-border: rgba(118, 222, 255, 0.22);
+      --text: #f1f4f7;
+      --muted: #b9c0c8;
+      --dim: #7d858f;
+      --cyan: #48d9ff;
+      --cyan-deep: #00b8d7;
+      --violet: #4b36dc;
+      --success: #4cc96b;
+      --paper: #f7f8fb;
+      --ink: #07111f;
+      --shadow-cyan: 0 0 34px rgba(72, 217, 255, 0.38);
+      --font: "Inter", "Pretendard", "Apple SD Gothic Neo", "Segoe UI", sans-serif;
+      font-family: var(--font);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      background: var(--bg);
+    }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+    }
+
+    .app {
+      min-height: 100vh;
+      background:
+        linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+        #0d1213;
+      background-size: 72px 72px;
+    }
+
+    .screen {
+      display: none;
+      min-height: 100vh;
+      animation: screenIn 360ms ease both;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    @keyframes screenIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .site-header {
+      position: relative;
+      z-index: 20;
+      height: 82px;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      padding: 0 clamp(26px, 4vw, 60px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+      background: rgba(16, 21, 23, 0.86);
+      backdrop-filter: blur(18px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      color: #f5f7f9;
+      text-decoration: none;
+      font-size: 30px;
+      line-height: 1;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+
+    .brand-mark {
+      width: 48px;
+      height: 48px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 8px;
+      background:
+        linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+        rgba(255, 255, 255, 0.025);
+      background-size: 16px 16px;
+    }
+
+    .brand-mark svg,
+    .profile-icon svg {
+      width: 26px;
+      height: 26px;
+      stroke: currentColor;
+      stroke-width: 2;
+      fill: none;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: clamp(24px, 4vw, 44px);
+      color: #d4d5d9;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .nav span {
+      position: relative;
+      padding: 4px 0 10px;
+    }
+
+    .nav span.active {
+      color: var(--cyan);
+    }
+
+    .nav span.active::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 2px;
+      border-radius: 999px;
+      background: var(--cyan);
+    }
+
+    .profile-icon {
+      justify-self: end;
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      color: #dfe3ea;
+    }
+
+    .home-screen {
+      display: none;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .home-screen.active {
+      display: flex;
+    }
+
+    .home-main {
+      flex: 1;
+      width: min(1120px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: clamp(70px, 9vh, 118px) 0 72px;
+      text-align: center;
+    }
+
+    .home-main h1 {
+      margin: 0 0 22px;
+      color: #edf0f4;
+      font-size: clamp(48px, 6.7vw, 72px);
+      line-height: 1.05;
+      font-weight: 900;
+      letter-spacing: 0;
+      text-shadow: 0 8px 34px rgba(0, 0, 0, 0.36);
+    }
+
+    .home-main > p {
+      margin: 0 auto 60px;
+      max-width: 780px;
+      color: #cfd3d8;
+      font-size: clamp(20px, 2vw, 25px);
+      line-height: 1.5;
+      font-weight: 600;
+    }
+
+    .upload-zone {
+      position: relative;
+      width: min(960px, 100%);
+      min-height: 360px;
+      margin: 0 auto 48px;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border: 1px solid rgba(72, 217, 255, 0.28);
+      border-radius: 10px;
+      background:
+        linear-gradient(145deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.018)),
+        rgba(14, 18, 24, 0.9);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.035), 0 20px 70px rgba(0, 0, 0, 0.24);
+      cursor: pointer;
+      transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+    }
+
+    .upload-zone:hover,
+    .upload-zone.dragover {
+      border-color: rgba(72, 217, 255, 0.72);
+      box-shadow: inset 0 0 0 1px rgba(72, 217, 255, 0.18), var(--shadow-cyan);
+      transform: translateY(-2px);
+    }
+
+    .upload-zone::before {
+      content: "";
+      position: absolute;
+      inset: 20px;
+      border: 2px dashed rgba(255, 255, 255, 0.13);
+      border-radius: 8px;
+      pointer-events: none;
+    }
+
+    .upload-empty,
+    .upload-filled {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      justify-items: center;
+      gap: 16px;
+      padding: 34px;
+    }
+
+    .upload-icon {
+      width: 116px;
+      height: 116px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: var(--cyan);
+      background: rgba(255, 255, 255, 0.075);
+      box-shadow: 0 22px 70px rgba(0, 0, 0, 0.34);
+    }
+
+    .upload-icon svg {
+      width: 42px;
+      height: 42px;
+      stroke: currentColor;
+      stroke-width: 2.6;
+      fill: none;
+    }
+
+    .upload-line {
+      margin: 6px 0 0;
+      color: #e9edf2;
+      font-size: 20px;
+      line-height: 1.45;
+      font-weight: 700;
+    }
+
+    .upload-line strong {
+      color: var(--cyan);
+    }
+
+    .upload-help {
+      margin: 0;
+      color: #c8cbd1;
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+    }
+
+    .upload-filled {
+      display: none;
+      width: 100%;
+    }
+
+    .upload-zone.has-file .upload-empty {
+      display: none;
+    }
+
+    .upload-zone.has-file .upload-filled {
+      display: grid;
+    }
+
+    .preview-frame {
+      width: min(430px, 86%);
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+      border: 1px solid rgba(72, 217, 255, 0.32);
+      border-radius: 14px;
+      background: #080c11;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.32);
+    }
+
+    .preview-frame img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+
+    .file-name {
+      margin: 0;
+      max-width: 88%;
+      overflow: hidden;
+      color: #edf6f8;
+      font-size: 19px;
+      font-weight: 800;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .scan-btn,
+    .delete-btn,
+    .supernova-btn {
+      min-height: 70px;
+      padding: 0 42px;
+      border-radius: 999px;
+      color: #081116;
+      background: linear-gradient(100deg, #4b36dc 0%, #48d9ff 100%);
+      box-shadow: 0 0 30px rgba(72, 217, 255, 0.38), 0 14px 34px rgba(0, 0, 0, 0.36);
+      font-size: 17px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      transition: transform 180ms ease, opacity 180ms ease, box-shadow 180ms ease;
+    }
+
+    .scan-btn {
+      min-width: 255px;
+    }
+
+    .scan-btn:disabled,
+    .delete-btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.34;
+      box-shadow: none;
+      filter: grayscale(0.35);
+    }
+
+    .scan-btn:not(:disabled):hover,
+    .delete-btn:not(:disabled):hover,
+    .supernova-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 42px rgba(72, 217, 255, 0.5), 0 18px 42px rgba(0, 0, 0, 0.38);
+    }
+
+    .secure-note {
+      margin: 34px 0 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: #d2d4d8;
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .secure-note svg {
+      width: 19px;
+      height: 19px;
+      stroke: currentColor;
+      stroke-width: 2;
+      fill: none;
+    }
+
+    .site-footer {
+      min-height: 94px;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 22px;
+      padding: 0 clamp(26px, 4vw, 60px);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      color: #cfd2d8;
+      background: rgba(8, 12, 13, 0.72);
+      font-weight: 800;
+    }
+
+    .footer-brand {
+      color: #f5f7f9;
+      font-size: 28px;
+      font-weight: 900;
+    }
+
+    .footer-links {
+      justify-self: end;
+      display: flex;
+      gap: 34px;
+    }
+
+    .loading-screen {
+      position: relative;
+      overflow: hidden;
+      display: none;
+      place-items: center;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(30, 45, 56, 0.98) 0%, #0d0e14 62%, #07080c 100%);
+    }
+
+    .loading-screen.active {
+      display: grid;
+    }
+
+    .loading-stars,
+    .space-stars {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .loading-stars {
+      background-image:
+        radial-gradient(2px 2px at 20px 30px, rgba(255, 255, 255, 0.9), transparent),
+        radial-gradient(1px 1px at 110px 90px, rgba(72, 217, 255, 0.9), transparent),
+        radial-gradient(2px 2px at 180px 150px, rgba(255, 255, 255, 0.7), transparent),
+        radial-gradient(1px 1px at 70px 180px, rgba(255, 255, 255, 0.7), transparent);
+      background-size: 220px 220px;
+      opacity: 0.28;
+      animation: drift 48s linear infinite;
+    }
+
+    @keyframes drift {
+      from {
+        transform: translateY(0);
+      }
+      to {
+        transform: translateY(-220px);
+      }
+    }
+
+    .loader-wrap {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      justify-items: center;
+      gap: 42px;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .loader-ring {
+      position: relative;
+      width: 128px;
+      height: 128px;
+      border-radius: 50%;
+      background: conic-gradient(from 0deg, transparent 0%, #00dce5 100%);
+      animation: rotate 1.45s linear infinite;
+    }
+
+    .loader-ring::before {
+      content: "";
+      position: absolute;
+      inset: 9px;
+      border-radius: 50%;
+      background: #0e0f15;
+    }
+
+    .loader-ring::after {
+      content: "";
+      position: absolute;
+      inset: 50px;
+      border-radius: 50%;
+      background: #00dce5;
+      box-shadow: 0 0 24px #00dce5;
+    }
+
+    .loader-glow {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      filter: blur(23px);
+      background: conic-gradient(from 0deg, transparent 0%, #00dce5 100%);
+      opacity: 0.48;
+      animation: rotate 1.45s linear infinite;
+    }
+
+    @keyframes rotate {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .loader-copy h1 {
+      margin: 0 0 14px;
+      color: #00dce5;
+      font-size: clamp(32px, 4vw, 44px);
+      font-weight: 900;
+      letter-spacing: 0;
+      text-shadow: 0 0 18px rgba(0, 220, 229, 0.55);
+      animation: pulseText 2s ease-in-out infinite;
+    }
+
+    .loader-copy p {
+      margin: 0;
+      color: #b9caca;
+      font-size: 19px;
+      font-weight: 700;
+    }
+
+    @keyframes pulseText {
+      50% {
+        opacity: 0.55;
+      }
+    }
+
+    .loader-progress {
+      width: min(340px, 72vw);
+      height: 5px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.07);
+    }
+
+    .loader-progress span {
+      display: block;
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: #00dce5;
+      box-shadow: 0 0 16px #00dce5;
+      transition: width 160ms ease;
+    }
+
+    .galaxy-screen {
+      position: relative;
+      min-height: 100vh;
+      overflow: hidden;
+      color: #fff;
+      background:
+        radial-gradient(circle at 54% 50%, rgba(37, 66, 85, 0.86) 0%, rgba(13, 20, 32, 0.76) 22%, rgba(4, 6, 13, 0.98) 62%, #02040a 100%),
+        #02040a;
+    }
+
+    .galaxy-screen::before {
+      content: "";
+      position: absolute;
+      inset: -22%;
+      background:
+        radial-gradient(ellipse at 48% 48%, rgba(75, 126, 154, 0.23), transparent 35%),
+        radial-gradient(ellipse at 66% 54%, rgba(34, 42, 86, 0.19), transparent 42%);
+      filter: blur(18px);
+      transform: scale(1.1);
+      pointer-events: none;
+    }
+
+    .space-stars {
+      background-image:
+        radial-gradient(1px 1px at 6% 12%, rgba(255, 255, 255, 0.62), transparent),
+        radial-gradient(2px 2px at 15% 72%, rgba(255, 255, 255, 0.72), transparent),
+        radial-gradient(1px 1px at 28% 30%, rgba(79, 206, 255, 0.62), transparent),
+        radial-gradient(2px 2px at 41% 82%, rgba(255, 255, 255, 0.58), transparent),
+        radial-gradient(1px 1px at 61% 20%, rgba(255, 255, 255, 0.64), transparent),
+        radial-gradient(1px 1px at 79% 33%, rgba(255, 255, 255, 0.55), transparent),
+        radial-gradient(2px 2px at 89% 70%, rgba(113, 121, 177, 0.8), transparent),
+        radial-gradient(1px 1px at 94% 47%, rgba(255, 255, 255, 0.48), transparent);
+      opacity: 0.9;
+    }
+
+    .space-topbar {
+      position: relative;
+      z-index: 25;
+      height: 82px;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      padding: 0 clamp(26px, 4vw, 60px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(15, 18, 25, 0.68);
+      backdrop-filter: blur(15px);
+    }
+
+    .back-btn {
+      justify-self: start;
+      min-height: 42px;
+      padding: 0 18px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 999px;
+      color: #eef4f7;
+      background: rgba(255, 255, 255, 0.06);
+      font-weight: 900;
+      cursor: pointer;
+      transition: background 180ms ease, transform 180ms ease;
+    }
+
+    .back-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      transform: translateY(-1px);
+    }
+
+    .nebula-title {
+      position: absolute;
+      left: clamp(36px, 4vw, 62px);
+      top: 102px;
+      z-index: 4;
+      margin: 0;
+      color: rgba(255, 255, 255, 0.1);
+      font-size: clamp(38px, 5vw, 78px);
+      line-height: 1;
+      font-weight: 900;
+      letter-spacing: 0;
+      pointer-events: none;
+    }
+
+    .galaxy-stage {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      overflow: hidden;
+    }
+
+    .decor-star {
+      position: absolute;
+      width: var(--size);
+      height: var(--size);
+      left: var(--x);
+      top: var(--y);
+      border-radius: 50%;
+      background: rgba(255, 255, 255, var(--alpha));
+      box-shadow: 0 0 14px rgba(255, 255, 255, 0.28);
+      pointer-events: none;
+    }
+
+    .galaxy-lines {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .cluster-line {
+      stroke: var(--line-color);
+      stroke-width: 1.1;
+      opacity: 0.25;
+      transition: opacity 300ms ease, stroke-width 300ms ease;
+    }
+
+    .cluster-line.selected,
+    .cluster-line.pending {
+      opacity: 0.94;
+      stroke-width: 2;
+      filter: drop-shadow(0 0 7px var(--line-color));
+    }
+
+    .cluster-line.pending {
+      animation: lineBlink 960ms ease-in-out infinite;
+    }
+
+    .cluster-line.fade-out {
+      opacity: 0;
+      transition: opacity 1300ms ease;
+    }
+
+    .center-node {
+      position: absolute;
+      left: 50%;
+      top: 51%;
+      z-index: 7;
+      width: 92px;
+      height: 92px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(107, 230, 255, 0.82);
+      border-radius: 50%;
+      color: #dffbff;
+      background: rgba(47, 190, 223, 0.18);
+      box-shadow: 0 0 34px rgba(72, 217, 255, 0.46);
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+
+    .center-node strong {
+      display: block;
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+
+    .node {
+      position: absolute;
+      z-index: 8;
+      width: 13px;
+      height: 13px;
+      border: 1px solid rgba(255, 255, 255, 0.72);
+      border-radius: 50%;
+      background: var(--node-color);
+      box-shadow: 0 0 18px var(--node-color), 0 0 36px color-mix(in srgb, var(--node-color), transparent 52%);
+      cursor: pointer;
+      opacity: 0.94;
+      transform: translate(-50%, -50%);
+      transition: transform 180ms ease, opacity 1200ms ease, box-shadow 220ms ease, width 180ms ease, height 180ms ease;
+    }
+
+    .node::after {
+      content: attr(data-label);
+      position: absolute;
+      left: 50%;
+      bottom: 24px;
+      width: max-content;
+      max-width: 190px;
+      padding: 7px 10px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 999px;
+      color: #fff;
+      background: rgba(8, 12, 20, 0.92);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+      font-size: 12px;
+      font-weight: 900;
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, 4px);
+      transition: opacity 160ms ease, transform 160ms ease;
+      white-space: nowrap;
+    }
+
+    .node:hover,
+    .node.selected,
+    .node.pending {
+      width: 18px;
+      height: 18px;
+      box-shadow: 0 0 24px var(--node-color), 0 0 56px var(--node-color);
+    }
+
+    .node:hover::after {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    .node.pending {
+      animation: nodeBlink 960ms ease-in-out infinite;
+    }
+
+    .node.fade-out {
+      width: 4px;
+      height: 4px;
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, -50%) scale(0.3);
+    }
+
+    @keyframes nodeBlink {
+      0%,
+      100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.8;
+      }
+      50% {
+        transform: translate(-50%, -50%) scale(1.46);
+        opacity: 1;
+      }
+    }
+
+    @keyframes lineBlink {
+      0%,
+      100% {
+        opacity: 0.4;
+      }
+      50% {
+        opacity: 1;
+      }
+    }
+
+    .platform-chip {
+      position: absolute;
+      z-index: 9;
+      padding: 7px 10px;
+      border: 1px solid color-mix(in srgb, var(--chip-color), white 22%);
+      border-radius: 999px;
+      color: #fff;
+      background: color-mix(in srgb, var(--chip-color), black 74%);
+      box-shadow: 0 0 24px color-mix(in srgb, var(--chip-color), transparent 66%);
+      font-size: 12px;
+      font-weight: 900;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .scan-panel {
+      position: absolute;
+      left: clamp(26px, 4vw, 62px);
+      top: 110px;
+      z-index: 18;
+      width: min(398px, calc(100vw - 52px));
+      overflow: hidden;
+      border-left: 1px solid rgba(72, 217, 255, 0.38);
+      background: linear-gradient(90deg, rgba(9, 12, 22, 0.86), rgba(9, 12, 22, 0.58));
+      box-shadow: 24px 0 70px rgba(0, 0, 0, 0.28);
+      backdrop-filter: blur(12px);
+    }
+
+    .status-strip {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 17px 18px;
+      border: 1px solid rgba(72, 217, 255, 0.25);
+      border-left: 0;
+      border-radius: 0 8px 8px 0;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .status-dot {
+      width: 26px;
+      height: 26px;
+      display: grid;
+      place-items: center;
+      border: 2px solid var(--cyan);
+      border-radius: 50%;
+      color: var(--cyan);
+      font-size: 15px;
+      font-weight: 900;
+    }
+
+    .status-strip span {
+      display: block;
+      color: #d9f7ff;
+      font-size: 13px;
+      line-height: 1;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .status-strip strong {
+      display: block;
+      margin-top: 5px;
+      color: #c8f5ff;
+      font-size: 22px;
+      line-height: 1;
+      font-weight: 900;
+    }
+
+    .found-count {
+      padding: 30px 0 26px;
+    }
+
+    .found-count strong {
+      color: #f0f3f7;
+      font-size: clamp(48px, 6vw, 68px);
+      line-height: 0.9;
+      font-weight: 900;
+      text-shadow: 0 10px 32px rgba(0, 0, 0, 0.34);
+    }
+
+    .found-count span {
+      margin-left: 8px;
+      color: #d7d8dd;
+      font-size: 26px;
+      font-weight: 900;
+    }
+
+    .panel-section {
+      padding: 0 0 24px;
+      color: #d7d9de;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .instruction-box,
+    .selection-box {
+      margin-right: 0;
+      padding: 20px 20px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-left: 0;
+      border-radius: 0 8px 8px 0;
+      background: rgba(255, 255, 255, 0.045);
+    }
+
+    .instruction-box {
+      display: flex;
+      gap: 12px;
+      line-height: 1.48;
+    }
+
+    .instruction-box svg {
+      width: 19px;
+      height: 19px;
+      flex: 0 0 auto;
+      margin-top: 4px;
+      stroke: var(--cyan);
+      stroke-width: 2.2;
+      fill: none;
+    }
+
+    .selection-box {
+      display: grid;
+      gap: 10px;
+      margin-top: 16px;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      color: rgba(255, 255, 255, 0.72);
+    }
+
+    .summary-row strong {
+      color: #fff;
+    }
+
+    .delete-btn {
+      width: 100%;
+      min-height: 58px;
+      margin-top: 22px;
+      border-radius: 0;
+      color: #fff;
+      letter-spacing: 0.05em;
+      box-shadow: none;
+    }
+
+    .progress-panel {
+      position: absolute;
+      left: clamp(26px, 4vw, 62px);
+      bottom: 44px;
+      z-index: 30;
+      width: min(448px, calc(100vw - 52px));
+      padding: 26px 30px;
+      border-radius: 22px;
+      color: #fff;
+      background: rgba(97, 135, 211, 0.96);
+      box-shadow: 0 22px 70px rgba(39, 77, 145, 0.38);
+      animation: progressIn 220ms ease both;
+    }
+
+    @keyframes progressIn {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .progress-panel h3 {
+      margin: 0 0 18px;
+      font-size: 25px;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+
+    .step-list {
+      display: grid;
+      gap: 13px;
+    }
+
+    .step-row {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      color: rgba(255, 255, 255, 0.72);
+      font-size: 19px;
+      font-weight: 900;
+    }
+
+    .step-row.complete,
+    .step-row.current {
+      color: #fff;
+    }
+
+    .step-dot {
+      width: 28px;
+      height: 28px;
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: #446ab8;
+      background: rgba(255, 255, 255, 0.34);
+      font-size: 17px;
+      font-weight: 900;
+    }
+
+    .step-row.complete .step-dot {
+      color: #16233f;
+      background: #fff;
+    }
+
+    .step-row.current .step-dot {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.22);
+      box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.16);
+      animation: currentPulse 1000ms ease-in-out infinite;
+    }
+
+    @keyframes currentPulse {
+      50% {
+        box-shadow: 0 0 0 10px rgba(255, 255, 255, 0.06);
+      }
+    }
+
+    .legal-screen {
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 50% 0%, rgba(72, 217, 255, 0.12), transparent 28%),
+        linear-gradient(135deg, #f4f6fb 0%, #edf1f7 100%);
+    }
+
+    .legal-screen .site-header {
+      color: #111827;
+      border-bottom-color: rgba(15, 23, 42, 0.08);
+      background: rgba(255, 255, 255, 0.86);
+    }
+
+    .legal-screen .brand,
+    .legal-screen .profile-icon,
+    .legal-screen .nav {
+      color: #121826;
+    }
+
+    .legal-screen .nav span {
+      color: #4b5565;
+    }
+
+    .legal-screen .nav span.active {
+      color: var(--violet);
+    }
+
+    .legal-screen .nav span.active::after {
+      background: var(--violet);
+    }
+
+    .legal-main {
+      width: min(980px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: clamp(46px, 6vw, 74px) 0 78px;
+      text-align: center;
+    }
+
+    .legal-icon {
+      width: 112px;
+      height: 112px;
+      margin: 0 auto 30px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: #695bf0;
+      background: #eee6ff;
+    }
+
+    .legal-icon svg {
+      width: 58px;
+      height: 58px;
+      stroke: currentColor;
+      stroke-width: 2.5;
+      fill: none;
+    }
+
+    .legal-main h1 {
+      margin: 0 0 14px;
+      font-size: clamp(34px, 4.6vw, 50px);
+      line-height: 1.08;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+
+    .legal-main > p {
+      margin: 0 auto 44px;
+      color: #5e6673;
+      font-size: clamp(18px, 2vw, 24px);
+      line-height: 1.5;
+      font-weight: 700;
+    }
+
+    .legal-list {
+      display: grid;
+      gap: 18px;
+      margin: 0 auto 30px;
+      text-align: left;
+    }
+
+    .legal-card {
+      display: grid;
+      grid-template-columns: 38px 1fr;
+      gap: 18px;
+      align-items: start;
+      padding: 24px 28px;
+      border: 1px solid #bcecca;
+      border-radius: 18px;
+      background: #effcf4;
+    }
+
+    .legal-check {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border: 3px solid #48ad5d;
+      border-radius: 50%;
+      color: #48ad5d;
+      font-size: 20px;
+      font-weight: 900;
+    }
+
+    .legal-card h3 {
+      margin: 0 0 8px;
+      color: #04111f;
+      font-size: 23px;
+      line-height: 1.22;
+      font-weight: 900;
+    }
+
+    .legal-tag {
+      display: inline-flex;
+      max-width: 100%;
+      margin-bottom: 13px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      color: #27772f;
+      background: #dcfbe4;
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .legal-done {
+      margin: 0;
+      color: #2e943b;
+      font-size: 16px;
+      font-weight: 900;
+    }
+
+    .legal-note {
+      margin: 18px 0 32px;
+      padding: 18px 20px;
+      border: 1px solid #decaff;
+      border-radius: 18px;
+      color: #4a168a;
+      background: #fbf7ff;
+      font-size: 17px;
+      font-weight: 800;
+    }
+
+    .supernova-btn {
+      width: min(680px, 100%);
+      border-radius: 18px;
+      color: #fff;
+      font-size: 22px;
+      letter-spacing: 0;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+    }
+
+    @media (max-width: 900px) {
+      .site-header,
+      .space-topbar,
+      .site-footer {
+        grid-template-columns: 1fr auto;
+      }
+
+      .nav {
+        display: none;
+      }
+
+      .profile-icon,
+      .footer-links {
+        justify-self: end;
+      }
+
+      .site-footer {
+        align-content: center;
+        gap: 10px;
+      }
+
+      .site-footer > span:nth-child(2) {
+        display: none;
+      }
+
+      .scan-panel {
+        top: 102px;
+        width: min(360px, calc(100vw - 38px));
+      }
+
+      .found-count {
+        padding: 24px 0 20px;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .site-header,
+      .space-topbar {
+        height: 70px;
+        padding: 0 18px;
+      }
+
+      .brand {
+        gap: 10px;
+        font-size: 24px;
+      }
+
+      .brand-mark {
+        width: 40px;
+        height: 40px;
+      }
+
+      .home-main {
+        width: min(100% - 24px, 1120px);
+        padding-top: 52px;
+      }
+
+      .upload-zone {
+        min-height: 310px;
+      }
+
+      .scan-btn {
+        width: min(100%, 300px);
+      }
+
+      .site-footer {
+        grid-template-columns: 1fr;
+        justify-items: start;
+        padding: 22px 18px;
+      }
+
+      .footer-links {
+        justify-self: start;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+
+      .scan-panel {
+        left: 16px;
+        top: 86px;
+        transform: scale(0.86);
+        transform-origin: top left;
+      }
+
+      .nebula-title {
+        display: none;
+      }
+
+      .center-node {
+        width: 76px;
+        height: 76px;
+      }
+
+      .progress-panel {
+        left: 14px;
+        bottom: 18px;
+        width: calc(100vw - 28px);
+        padding: 20px;
+      }
+
+      .legal-main {
+        width: min(100% - 24px, 980px);
+      }
+
+      .legal-card {
+        grid-template-columns: 30px 1fr;
+        gap: 14px;
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section id="homeScreen" class="screen home-screen active" aria-labelledby="homeTitle">
+      <header class="site-header">
+        <a class="brand" href="#" aria-label="StarScan 홈">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 8h16" />
+              <path d="M4 16h16" />
+              <path d="M8 4v16" />
+              <path d="M16 4v16" />
+            </svg>
+          </span>
+          StarScan
+        </a>
+        <nav class="nav" aria-label="주요 메뉴">
+          <span class="active">Home</span>
+          <span>Dashboard</span>
+          <span>History</span>
+          <span>Profile</span>
+        </nav>
+        <span class="profile-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="9" />
+            <circle cx="12" cy="10" r="3" />
+            <path d="M6.8 18.2c1.4-2.2 3.1-3.2 5.2-3.2s3.8 1 5.2 3.2" />
+          </svg>
+        </span>
+      </header>
+
+      <div class="home-main">
+        <h1 id="homeTitle">Protect Your Digital Image</h1>
+        <p>이미지를 업로드하면 웹 우주에 흩어진 흔적을 스캔하고, 삭제 요청 흐름을 바로 확인할 수 있습니다.</p>
+
+        <input id="imageInput" class="sr-only" type="file" accept="image/*" />
+        <div id="uploadZone" class="upload-zone" role="button" tabindex="0" aria-label="이미지 업로드">
+          <div class="upload-empty">
+            <span class="upload-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M17 18a4 4 0 0 0 0-8h-.2A6 6 0 0 0 5.2 8.3 4.7 4.7 0 0 0 6 18h3" />
+                <path d="M12 12v8" />
+                <path d="m8.5 15.5 3.5-3.5 3.5 3.5" />
+              </svg>
+            </span>
+            <p class="upload-line"><strong>Click to upload</strong> 또는 이미지를 끌어다 놓으세요</p>
+            <p class="upload-help">SVG, PNG, JPG, WEBP</p>
+          </div>
+          <div class="upload-filled">
+            <div class="preview-frame">
+              <img id="uploadPreview" alt="업로드한 이미지 미리보기" />
+            </div>
+            <p id="fileName" class="file-name"></p>
+            <p class="upload-help">이미지를 다시 선택하려면 이 영역을 클릭하세요</p>
+          </div>
+        </div>
+
+        <button id="scanButton" class="scan-btn" type="button" disabled>탐색하기</button>
+        <p class="secure-note">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="6" y="10" width="12" height="10" rx="2" />
+            <path d="M9 10V7a3 3 0 0 1 6 0v3" />
+          </svg>
+          업로드 이미지는 현재 브라우저 안에서만 미리보기로 사용됩니다.
+        </p>
+      </div>
+
+      <footer class="site-footer">
+        <span class="footer-brand">StarScan</span>
+        <span>© 2026 StarScan. Digital Sovereignty in the Deep Space.</span>
+        <span class="footer-links">
+          <span>Privacy Policy</span>
+          <span>Terms of Service</span>
+          <span>Legal Counsel</span>
+        </span>
+      </footer>
+    </section>
+
+    <section id="loadingScreen" class="screen loading-screen" aria-labelledby="loadingTitle">
+      <div class="loading-stars"></div>
+      <div class="loader-wrap">
+        <div style="position: relative;">
+          <div class="loader-glow"></div>
+          <div class="loader-ring"></div>
+        </div>
+        <div class="loader-copy">
+          <h1 id="loadingTitle">로딩 중...</h1>
+          <p>업로드 이미지의 디지털 흔적을 탐색하고 있습니다...</p>
+        </div>
+        <div class="loader-progress" aria-label="탐색 진행률">
+          <span id="loadingProgress"></span>
+        </div>
+      </div>
+    </section>
+
+    <section id="galaxyScreen" class="screen galaxy-screen" aria-labelledby="galaxyTitle">
+      <div class="space-stars"></div>
+      <header class="space-topbar">
+        <a class="brand" href="#" aria-label="StarScan 대시보드">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 8h16" />
+              <path d="M4 16h16" />
+              <path d="M8 4v16" />
+              <path d="M16 4v16" />
+            </svg>
+          </span>
+          StarScan
+        </a>
+        <nav class="nav" aria-label="주요 메뉴">
+          <span>Home</span>
+          <span class="active">Dashboard</span>
+          <span>History</span>
+          <span>Profile</span>
+        </nav>
+        <button id="backHomeBtn" class="back-btn" type="button">처음으로</button>
+      </header>
+
+      <h1 id="galaxyTitle" class="nebula-title">디지털 우주</h1>
+
+      <aside class="scan-panel" aria-label="탐색 결과와 삭제 요청">
+        <div class="status-strip">
+          <span class="status-dot" aria-hidden="true">✓</span>
+          <div>
+            <span>Status</span>
+            <strong>Scanning Complete</strong>
+          </div>
+        </div>
+        <div class="found-count">
+          <strong id="foundDataCount">0</strong>
+          <span>찾은 데이터</span>
+        </div>
+        <div class="panel-section">
+          <div class="instruction-box">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 3v18" />
+              <path d="M8 7h8" />
+              <path d="M8 17h8" />
+              <path d="M6 12h12" />
+            </svg>
+            <span>별 하나를 선택하면 같은 별자리 전체에 삭제 요청을 시작할 수 있습니다.</span>
+          </div>
+          <div id="selectionSummary" class="selection-box"></div>
+          <button id="deleteRequestBtn" class="delete-btn" type="button" disabled>삭제 요청</button>
+        </div>
+      </aside>
+
+      <div id="galaxyStage" class="galaxy-stage" aria-label="디지털 흔적 별자리"></div>
+    </section>
+
+    <section id="legalScreen" class="screen legal-screen" aria-labelledby="legalTitle">
+      <header class="site-header">
+        <a class="brand" href="#" aria-label="StarScan 법적 서류 매칭">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 8h16" />
+              <path d="M4 16h16" />
+              <path d="M8 4v16" />
+              <path d="M16 4v16" />
+            </svg>
+          </span>
+          StarScan
+        </a>
+        <nav class="nav" aria-label="주요 메뉴">
+          <span>Home</span>
+          <span class="active">Dashboard</span>
+          <span>History</span>
+          <span>Profile</span>
+        </nav>
+        <span class="profile-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="9" />
+            <circle cx="12" cy="10" r="3" />
+            <path d="M6.8 18.2c1.4-2.2 3.1-3.2 5.2-3.2s3.8 1 5.2 3.2" />
+          </svg>
+        </span>
+      </header>
+
+      <div class="legal-main">
+        <div class="legal-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M7 3h7l4 4v14H7z" />
+            <path d="M14 3v5h5" />
+            <path d="M9.5 12h5" />
+            <path d="M9.5 16h5" />
+            <path d="M9.5 8.5h2" />
+          </svg>
+        </div>
+        <h1 id="legalTitle">AI 맞춤형 법적 서류 매칭</h1>
+        <p>복잡한 법은 몰라도 돼요. AI가 모든 것을 대행해 드려요.</p>
+        <div id="legalList" class="legal-list"></div>
+        <p class="legal-note">각 플랫폼에 맞는 최적의 법적 조치를 자동으로 선택했어요</p>
+        <button id="supernovaBtn" class="supernova-btn" type="button">초신성 폭발</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const PEOPLE = [
+      { key: "karina", name: "카리나", count: 30 },
+      { key: "winter", name: "윈터", count: 40 },
+      { key: "ningning", name: "닝닝", count: 40 },
+      { key: "giselle", name: "지젤", count: 40 }
+    ];
+
+    const PLATFORMS = {
+      instagram: {
+        name: "인스타그램",
+        short: "IG",
+        color: "#ff4fb8",
+        action: "잊힐 권리 요청",
+        base: { x: 23, y: 26 },
+        offsets: [
+          { x: -6, y: -6 },
+          { x: 8, y: 2 },
+          { x: -9, y: 11 },
+          { x: 10, y: 14 }
+        ]
+      },
+      facebook: {
+        name: "페이스북",
+        short: "FB",
+        color: "#75a1ff",
+        action: "초상권 침해",
+        base: { x: 72, y: 24 },
+        offsets: [
+          { x: -9, y: -2 },
+          { x: 7, y: -5 },
+          { x: 10, y: 10 },
+          { x: -7, y: 13 }
+        ]
+      },
+      twitter: {
+        name: "트위터(X)",
+        short: "X",
+        color: "#48d9ff",
+        action: "개인정보보호법 위반",
+        base: { x: 74, y: 70 },
+        offsets: [
+          { x: -7, y: -10 },
+          { x: 9, y: -3 },
+          { x: 3, y: 11 },
+          { x: -12, y: 5 }
+        ]
+      },
+      blog: {
+        name: "블로그",
+        short: "BL",
+        color: "#5bd46d",
+        action: "정보통신망법 명예훼손",
+        base: { x: 27, y: 73 },
+        offsets: [
+          { x: -6, y: -9 },
+          { x: 10, y: -4 },
+          { x: 4, y: 11 },
+          { x: -12, y: 5 }
+        ]
+      }
+    };
+
+    const PLATFORM_KEYS = Object.keys(PLATFORMS);
+    const DISTRIBUTIONS = {
+      30: [8, 7, 8, 7],
+      40: [10, 10, 10, 10]
+    };
+    const LEGAL_STEPS = ["서류 발송", "사이트 관리자 확인 중", "블라인드 처리", "영구 삭제 완료"];
+
+    const state = {
+      currentScreen: "home",
+      currentPerson: null,
+      selectedClusters: new Set(),
+      pendingDeletionClusters: new Set(),
+      deletingClusters: new Set(),
+      activeProgressCluster: null,
+      progressByCluster: {},
+      progressTimers: {},
+      uploadSeed: 0,
+      uploadPreviewUrl: "",
+      loadingInterval: null,
+      loadingTimer: null
+    };
+
+    const allData = generateDummyData();
+    const decorativeStars = createDecorativeStars();
+
+    const homeScreen = document.getElementById("homeScreen");
+    const loadingScreen = document.getElementById("loadingScreen");
+    const galaxyScreen = document.getElementById("galaxyScreen");
+    const legalScreen = document.getElementById("legalScreen");
+    const imageInput = document.getElementById("imageInput");
+    const uploadZone = document.getElementById("uploadZone");
+    const uploadPreview = document.getElementById("uploadPreview");
+    const fileName = document.getElementById("fileName");
+    const scanButton = document.getElementById("scanButton");
+    const loadingProgress = document.getElementById("loadingProgress");
+    const galaxyStage = document.getElementById("galaxyStage");
+    const foundDataCount = document.getElementById("foundDataCount");
+    const selectionSummary = document.getElementById("selectionSummary");
+    const deleteRequestBtn = document.getElementById("deleteRequestBtn");
+    const supernovaBtn = document.getElementById("supernovaBtn");
+    const legalList = document.getElementById("legalList");
+    const backHomeBtn = document.getElementById("backHomeBtn");
+
+    bindUploadEvents();
+    renderSelectionSummary([]);
+
+    backHomeBtn.addEventListener("click", () => {
+      clearProgressTimers();
+      state.currentPerson = null;
+      state.selectedClusters.clear();
+      state.pendingDeletionClusters.clear();
+      state.activeProgressCluster = null;
+      showScreen("home");
+    });
+
+    scanButton.addEventListener("click", startScan);
+
+    deleteRequestBtn.addEventListener("click", () => {
+      if (state.selectedClusters.size === 0) return;
+      renderLegalScreen();
+      showScreen("legal");
+    });
+
+    supernovaBtn.addEventListener("click", () => {
+      state.pendingDeletionClusters = new Set(state.selectedClusters);
+      state.activeProgressCluster = null;
+      showScreen("galaxy");
+      renderGalaxy();
+    });
+
+    function bindUploadEvents() {
+      uploadZone.addEventListener("click", () => imageInput.click());
+      uploadZone.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          imageInput.click();
+        }
+      });
+
+      imageInput.addEventListener("change", () => {
+        const file = imageInput.files && imageInput.files[0];
+        if (file) handleImageFile(file);
+      });
+
+      ["dragenter", "dragover"].forEach((eventName) => {
+        uploadZone.addEventListener(eventName, (event) => {
+          event.preventDefault();
+          uploadZone.classList.add("dragover");
+        });
+      });
+
+      ["dragleave", "drop"].forEach((eventName) => {
+        uploadZone.addEventListener(eventName, (event) => {
+          event.preventDefault();
+          uploadZone.classList.remove("dragover");
+        });
+      });
+
+      uploadZone.addEventListener("drop", (event) => {
+        const file = event.dataTransfer.files && event.dataTransfer.files[0];
+        if (file && file.type.startsWith("image/")) handleImageFile(file);
+      });
+    }
+
+    function handleImageFile(file) {
+      if (state.uploadPreviewUrl) URL.revokeObjectURL(state.uploadPreviewUrl);
+      state.uploadPreviewUrl = URL.createObjectURL(file);
+      state.uploadSeed = Date.now() + file.name.length + file.size;
+      uploadPreview.src = state.uploadPreviewUrl;
+      fileName.textContent = file.name;
+      uploadZone.classList.add("has-file");
+      scanButton.disabled = false;
+    }
+
+    function startScan() {
+      if (scanButton.disabled) return;
+      resetAllData();
+      clearProgressTimers();
+      showScreen("loading");
+      loadingProgress.style.width = "0%";
+
+      let progress = 0;
+      const targetPerson = getSeededPerson();
+      window.clearInterval(state.loadingInterval);
+      window.clearTimeout(state.loadingTimer);
+
+      state.loadingInterval = window.setInterval(() => {
+        progress = Math.min(96, progress + 5 + Math.random() * 11);
+        loadingProgress.style.width = `${progress}%`;
+      }, 120);
+
+      state.loadingTimer = window.setTimeout(() => {
+        window.clearInterval(state.loadingInterval);
+        loadingProgress.style.width = "100%";
+        window.setTimeout(() => openPerson(targetPerson.name), 280);
+      }, 2300);
+    }
+
+    function getSeededPerson() {
+      const timeSeed = Date.now();
+      const seed = Math.abs(Math.floor((state.uploadSeed + timeSeed) / 997));
+      return PEOPLE[seed % PEOPLE.length];
+    }
+
+    function generateDummyData() {
+      let id = 1;
+      const rows = [];
+
+      PEOPLE.forEach((person) => {
+        const distribution = DISTRIBUTIONS[person.count];
+
+        PLATFORM_KEYS.forEach((platformKey, platformIndex) => {
+          const platform = PLATFORMS[platformKey];
+          const platformCount = distribution[platformIndex];
+          const clusterSizes = getClusterSizes(platformCount);
+          let platformItemIndex = 1;
+
+          clusterSizes.forEach((clusterSize, clusterIndex) => {
+            const clusterId = `${person.key}-${platformKey}-${clusterIndex + 1}`;
+
+            for (let i = 0; i < clusterSize; i += 1) {
+              rows.push({
+                id: `trace-${id}`,
+                personName: person.name,
+                platform: platform.name,
+                platformKey,
+                title: `${platform.name} 흔적 ${platformItemIndex}`,
+                label: `${platform.short}-${platformItemIndex}`,
+                clusterId,
+                clusterName: `${platform.name} 흔적 묶음 ${clusterIndex + 1}`,
+                deleted: false,
+                selected: false,
+                progressStep: 0
+              });
+              id += 1;
+              platformItemIndex += 1;
+            }
+          });
+        });
+      });
+
+      console.assert(rows.length === 150, `더미 데이터 개수 오류: ${rows.length}`);
+      return rows;
+    }
+
+    function resetAllData() {
+      allData.forEach((item) => {
+        item.deleted = false;
+        item.selected = false;
+        item.progressStep = 0;
+      });
+      state.selectedClusters.clear();
+      state.pendingDeletionClusters.clear();
+      state.deletingClusters.clear();
+      state.activeProgressCluster = null;
+      state.progressByCluster = {};
+    }
+
+    function getClusterSizes(count) {
+      if (count === 10) return [4, 3, 3];
+      if (count === 8) return [3, 3, 2];
+      if (count === 7) return [3, 2, 2];
+
+      const sizes = [];
+      let remaining = count;
+      while (remaining > 0) {
+        let next = remaining >= 4 ? 4 : remaining;
+        if (remaining - next === 1) next -= 1;
+        sizes.push(next);
+        remaining -= next;
+      }
+      return sizes;
+    }
+
+    function createDecorativeStars() {
+      const stars = [];
+      let seed = 42;
+
+      for (let i = 0; i < 96; i += 1) {
+        seed = (seed * 9301 + 49297) % 233280;
+        const x = (seed / 233280) * 100;
+        seed = (seed * 9301 + 49297) % 233280;
+        const y = (seed / 233280) * 100;
+        seed = (seed * 9301 + 49297) % 233280;
+        const size = 1.4 + (seed / 233280) * 3.2;
+        seed = (seed * 9301 + 49297) % 233280;
+        const alpha = 0.14 + (seed / 233280) * 0.44;
+        stars.push({ x, y, size, alpha });
+      }
+
+      return stars;
+    }
+
+    function openPerson(personName) {
+      state.currentPerson = personName;
+      state.selectedClusters.clear();
+      state.pendingDeletionClusters.clear();
+      state.deletingClusters.clear();
+      state.activeProgressCluster = null;
+      showScreen("galaxy");
+      renderGalaxy();
+    }
+
+    function showScreen(screenName) {
+      state.currentScreen = screenName;
+      homeScreen.classList.toggle("active", screenName === "home");
+      loadingScreen.classList.toggle("active", screenName === "loading");
+      galaxyScreen.classList.toggle("active", screenName === "galaxy");
+      legalScreen.classList.toggle("active", screenName === "legal");
+    }
+
+    function getCurrentItems(includeDeleted = true) {
+      return allData.filter((item) => item.personName === state.currentPerson && (includeDeleted || !item.deleted));
+    }
+
+    function getActiveItems() {
+      return getCurrentItems(false);
+    }
+
+    function groupClusters(items) {
+      const clusterMap = new Map();
+
+      items.forEach((item) => {
+        if (!clusterMap.has(item.clusterId)) clusterMap.set(item.clusterId, []);
+        clusterMap.get(item.clusterId).push(item);
+      });
+
+      return Array.from(clusterMap.entries()).map(([clusterId, clusterItems]) => ({
+        clusterId,
+        items: clusterItems,
+        platformKey: clusterItems[0].platformKey,
+        platform: clusterItems[0].platform,
+        name: clusterItems[0].clusterName
+      }));
+    }
+
+    function getClustersForCurrentPerson(includeDeleted = false) {
+      return groupClusters(getCurrentItems(includeDeleted));
+    }
+
+    function buildLayout(allClusters) {
+      const platformOrder = {};
+      const itemPositions = {};
+      const clusterCenters = {};
+
+      allClusters.forEach((cluster) => {
+        const platform = PLATFORMS[cluster.platformKey];
+        const order = platformOrder[cluster.platformKey] || 0;
+        platformOrder[cluster.platformKey] = order + 1;
+
+        const offset = platform.offsets[order % platform.offsets.length];
+        const center = {
+          x: clamp(platform.base.x + offset.x, 8, 92),
+          y: clamp(platform.base.y + offset.y, 12, 91)
+        };
+        clusterCenters[cluster.clusterId] = center;
+
+        const radius = 4.6 + Math.min(cluster.items.length, 4) * 0.72;
+        const angleSeed = (order + 1) * 0.74 + PLATFORM_KEYS.indexOf(cluster.platformKey) * 0.47;
+
+        cluster.items.forEach((item, index) => {
+          const angle = angleSeed + (Math.PI * 2 * index) / cluster.items.length;
+          const wobble = index % 2 === 0 ? 0.95 : -0.42;
+          itemPositions[item.id] = {
+            x: clamp(center.x + Math.cos(angle) * (radius + wobble), 5, 96),
+            y: clamp(center.y + Math.sin(angle) * (radius - wobble), 9, 94)
+          };
+        });
+      });
+
+      return { itemPositions, clusterCenters };
+    }
+
+    function renderGalaxy() {
+      if (!state.currentPerson) return;
+
+      const allClusters = getClustersForCurrentPerson(true);
+      const activeItems = getActiveItems();
+      const activeClusters = groupClusters(activeItems);
+      const deletedItems = getCurrentItems(true).filter((item) => item.deleted);
+      const layout = buildLayout(allClusters);
+
+      foundDataCount.textContent = activeItems.length;
+      renderSelectionSummary(activeClusters, deletedItems.length);
+      deleteRequestBtn.disabled = state.selectedClusters.size === 0 || state.pendingDeletionClusters.size > 0;
+
+      const starHtml = decorativeStars.map((star) => `
+        <span class="decor-star" style="--x: ${star.x.toFixed(2)}%; --y: ${star.y.toFixed(2)}%; --size: ${star.size.toFixed(1)}px; --alpha: ${star.alpha.toFixed(2)}"></span>
+      `).join("");
+
+      const lineHtml = renderLineSvg(activeClusters, layout);
+      const chipHtml = renderPlatformChips(activeClusters, layout);
+      const nodeHtml = activeItems.map((item) => {
+        const position = layout.itemPositions[item.id];
+        const platform = PLATFORMS[item.platformKey];
+        const selected = state.selectedClusters.has(item.clusterId);
+        const pending = state.pendingDeletionClusters.has(item.clusterId);
+        const deleting = state.deletingClusters.has(item.clusterId);
+        const classNames = ["node"];
+        if (selected) classNames.push("selected");
+        if (pending) classNames.push("pending");
+        if (deleting) classNames.push("fade-out");
+
+        return `
+          <button
+            class="${classNames.join(" ")}"
+            data-testid="data-node"
+            data-cluster-id="${item.clusterId}"
+            data-platform="${item.platform}"
+            data-label="${item.label}"
+            style="left: ${position.x}%; top: ${position.y}%; --node-color: ${platform.color}"
+            type="button"
+            aria-label="${item.platform} ${item.title}">
+          </button>
+        `;
+      }).join("");
+
+      galaxyStage.innerHTML = `
+        ${starHtml}
+        ${lineHtml}
+        <div class="center-node" aria-hidden="true"><strong>나</strong></div>
+        ${chipHtml}
+        ${nodeHtml}
+        <div id="progressPanelMount"></div>
+      `;
+
+      galaxyStage.querySelectorAll(".node").forEach((node) => {
+        node.addEventListener("click", () => handleClusterClick(node.dataset.clusterId));
+      });
+
+      if (state.activeProgressCluster) renderProgressPanel(state.activeProgressCluster);
+    }
+
+    function renderSelectionSummary(clusters, deletedCount = 0) {
+      const selectedClusters = clusters.filter((cluster) => state.selectedClusters.has(cluster.clusterId));
+      const selectedItems = selectedClusters.reduce((sum, cluster) => sum + cluster.items.length, 0);
+      const pendingText = state.pendingDeletionClusters.size > 0 ? "초신성 이후 재클릭 대기" : "삭제 요청 전";
+
+      selectionSummary.innerHTML = `
+        <div class="summary-row"><span>선택된 별자리</span><strong>${selectedClusters.length}개</strong></div>
+        <div class="summary-row"><span>선택된 데이터</span><strong>${selectedItems}개</strong></div>
+        <div class="summary-row"><span>삭제 완료</span><strong>${deletedCount}개</strong></div>
+        <div class="summary-row"><span>상태</span><strong>${pendingText}</strong></div>
+      `;
+    }
+
+    function renderLineSvg(clusters, layout) {
+      const clusterLines = [];
+
+      clusters.forEach((cluster) => {
+        const platform = PLATFORMS[cluster.platformKey];
+        const selected = state.selectedClusters.has(cluster.clusterId);
+        const pending = state.pendingDeletionClusters.has(cluster.clusterId);
+        const deleting = state.deletingClusters.has(cluster.clusterId);
+        const stateClass = [
+          selected ? "selected" : "",
+          pending ? "pending" : "",
+          deleting ? "fade-out" : ""
+        ].filter(Boolean).join(" ");
+
+        const positions = cluster.items.map((item) => layout.itemPositions[item.id]);
+        positions.forEach((position, index) => {
+          const next = positions[(index + 1) % positions.length];
+          clusterLines.push(`
+            <line class="cluster-line ${stateClass}" data-cluster-id="${cluster.clusterId}" style="--line-color: ${platform.color}" x1="${position.x}%" y1="${position.y}%" x2="${next.x}%" y2="${next.y}%" />
+          `);
+        });
+
+        if (positions.length > 3) {
+          clusterLines.push(`
+            <line class="cluster-line ${stateClass}" data-cluster-id="${cluster.clusterId}" style="--line-color: ${platform.color}" x1="${positions[0].x}%" y1="${positions[0].y}%" x2="${positions[2].x}%" y2="${positions[2].y}%" />
+          `);
+        }
+      });
+
+      return `<svg class="galaxy-lines" aria-hidden="true">${clusterLines.join("")}</svg>`;
+    }
+
+    function renderPlatformChips(clusters, layout) {
+      return PLATFORM_KEYS.map((platformKey) => {
+        const platformClusters = clusters.filter((cluster) => cluster.platformKey === platformKey);
+        if (platformClusters.length === 0) return "";
+
+        const platform = PLATFORMS[platformKey];
+        const center = platformClusters.reduce((acc, cluster) => {
+          const clusterCenter = layout.clusterCenters[cluster.clusterId];
+          acc.x += clusterCenter.x;
+          acc.y += clusterCenter.y;
+          return acc;
+        }, { x: 0, y: 0 });
+
+        center.x /= platformClusters.length;
+        center.y /= platformClusters.length;
+
+        return `
+          <span class="platform-chip" style="left: ${center.x}%; top: ${Math.max(9, center.y - 14)}%; --chip-color: ${platform.color}">
+            ${platform.name}
+          </span>
+        `;
+      }).join("");
+    }
+
+    function handleClusterClick(clusterId) {
+      const clusterItems = allData.filter((item) => item.clusterId === clusterId && !item.deleted);
+      if (clusterItems.length === 0 || state.deletingClusters.has(clusterId)) return;
+
+      if (state.pendingDeletionClusters.has(clusterId)) {
+        showProgressForCluster(clusterId);
+        return;
+      }
+
+      if (state.pendingDeletionClusters.size > 0) return;
+
+      if (state.selectedClusters.has(clusterId)) {
+        state.selectedClusters.delete(clusterId);
+        clusterItems.forEach((item) => {
+          item.selected = false;
+        });
+      } else {
+        state.selectedClusters.add(clusterId);
+        clusterItems.forEach((item) => {
+          item.selected = true;
+        });
+      }
+
+      renderGalaxy();
+    }
+
+    function renderLegalScreen() {
+      const selectedClusters = getClustersForCurrentPerson(false)
+        .filter((cluster) => state.selectedClusters.has(cluster.clusterId))
+        .sort((a, b) => {
+          const platformDiff = PLATFORM_KEYS.indexOf(a.platformKey) - PLATFORM_KEYS.indexOf(b.platformKey);
+          return platformDiff || a.name.localeCompare(b.name, "ko");
+        });
+
+      legalList.innerHTML = selectedClusters.map((cluster) => {
+        const platform = PLATFORMS[cluster.platformKey];
+        return `
+          <article class="legal-card">
+            <span class="legal-check" aria-hidden="true">✓</span>
+            <div>
+              <h3>${platform.name} · ${cluster.name}</h3>
+              <span class="legal-tag">${platform.action}</span>
+              <p class="legal-done">✓ 내용증명 작성 완료</p>
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function showProgressForCluster(clusterId) {
+      state.activeProgressCluster = clusterId;
+
+      if (state.progressByCluster[clusterId] === undefined) {
+        state.progressByCluster[clusterId] = 0;
+      }
+
+      renderProgressPanel(clusterId);
+
+      if (state.progressTimers[clusterId]) return;
+
+      state.progressTimers[clusterId] = window.setInterval(() => {
+        const current = state.progressByCluster[clusterId] || 0;
+        const next = Math.min(current + 1, LEGAL_STEPS.length);
+        state.progressByCluster[clusterId] = next;
+        allData
+          .filter((item) => item.clusterId === clusterId)
+          .forEach((item) => {
+            item.progressStep = next;
+          });
+        renderProgressPanel(clusterId);
+
+        if (next === LEGAL_STEPS.length) {
+          window.clearInterval(state.progressTimers[clusterId]);
+          delete state.progressTimers[clusterId];
+          window.setTimeout(() => completeDeletion(clusterId), 450);
+        }
+      }, 1050);
+    }
+
+    function renderProgressPanel(clusterId) {
+      const mount = document.getElementById("progressPanelMount");
+      if (!mount) return;
+
+      const firstItem = allData.find((item) => item.clusterId === clusterId);
+      if (!firstItem) return;
+
+      const progress = state.progressByCluster[clusterId] || 0;
+      const platformName = firstItem.platform;
+
+      mount.innerHTML = `
+        <aside class="progress-panel" aria-label="${platformName} 삭제 진행 상태">
+          <h3>${platformName}</h3>
+          <div class="step-list">
+            ${LEGAL_STEPS.map((step, index) => {
+              const isComplete = progress > index;
+              const isCurrent = progress === index && progress < LEGAL_STEPS.length;
+              return `
+                <div class="step-row ${isComplete ? "complete" : ""} ${isCurrent ? "current" : ""}">
+                  <span class="step-dot">${isComplete ? "✓" : ""}</span>
+                  <span>${step}</span>
+                </div>
+              `;
+            }).join("")}
+          </div>
+        </aside>
+      `;
+    }
+
+    function completeDeletion(clusterId) {
+      const visiblePieces = galaxyStage.querySelectorAll(`[data-cluster-id="${clusterId}"]`);
+      visiblePieces.forEach((element) => element.classList.add("fade-out"));
+      state.deletingClusters.add(clusterId);
+
+      window.setTimeout(() => {
+        allData
+          .filter((item) => item.clusterId === clusterId)
+          .forEach((item) => {
+            item.deleted = true;
+            item.selected = false;
+            item.progressStep = 4;
+          });
+
+        state.selectedClusters.delete(clusterId);
+        state.pendingDeletionClusters.delete(clusterId);
+        state.deletingClusters.delete(clusterId);
+        state.activeProgressCluster = null;
+        delete state.progressByCluster[clusterId];
+        renderGalaxy();
+      }, 1400);
+    }
+
+    function clearProgressTimers() {
+      Object.values(state.progressTimers).forEach((timer) => window.clearInterval(timer));
+      state.progressTimers = {};
+      window.clearInterval(state.loadingInterval);
+      window.clearTimeout(state.loadingTimer);
+    }
+
+    function clamp(value, min, max) {
+      return Math.min(Math.max(value, min), max);
+    }
+  </script>
+</body>
+</html>
