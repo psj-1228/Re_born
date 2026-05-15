@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>StarScan 디지털 이미지 탐색</title>
+  <title>Re;born 디지털 이미지 탐색</title>
   <style>
     :root {
       --bg: #0d1213;
@@ -84,7 +84,7 @@
       z-index: 20;
       height: 82px;
       display: grid;
-      grid-template-columns: 1fr auto 1fr;
+      grid-template-columns: 1fr auto;
       align-items: center;
       padding: 0 clamp(26px, 4vw, 60px);
       border-bottom: 1px solid rgba(255, 255, 255, 0.09);
@@ -125,35 +125,6 @@
       stroke: currentColor;
       stroke-width: 2;
       fill: none;
-    }
-
-    .nav {
-      display: flex;
-      align-items: center;
-      gap: clamp(24px, 4vw, 44px);
-      color: #d4d5d9;
-      font-size: 20px;
-      font-weight: 700;
-    }
-
-    .nav span {
-      position: relative;
-      padding: 4px 0 10px;
-    }
-
-    .nav span.active {
-      color: var(--cyan);
-    }
-
-    .nav span.active::after {
-      content: "";
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      height: 2px;
-      border-radius: 999px;
-      background: var(--cyan);
     }
 
     .profile-icon {
@@ -379,31 +350,6 @@
       fill: none;
     }
 
-    .site-footer {
-      min-height: 94px;
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
-      align-items: center;
-      gap: 22px;
-      padding: 0 clamp(26px, 4vw, 60px);
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
-      color: #cfd2d8;
-      background: rgba(8, 12, 13, 0.72);
-      font-weight: 800;
-    }
-
-    .footer-brand {
-      color: #f5f7f9;
-      font-size: 28px;
-      font-weight: 900;
-    }
-
-    .footer-links {
-      justify-self: end;
-      display: flex;
-      gap: 34px;
-    }
-
     .loading-screen {
       position: relative;
       overflow: hidden;
@@ -577,7 +523,7 @@
       z-index: 25;
       height: 82px;
       display: grid;
-      grid-template-columns: 1fr auto 1fr;
+      grid-template-columns: 1fr auto;
       align-items: center;
       padding: 0 clamp(26px, 4vw, 60px);
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -586,7 +532,7 @@
     }
 
     .back-btn {
-      justify-self: start;
+      justify-self: end;
       min-height: 42px;
       padding: 0 18px;
       border: 1px solid rgba(255, 255, 255, 0.14);
@@ -802,9 +748,11 @@
       background: linear-gradient(90deg, rgba(9, 12, 22, 0.86), rgba(9, 12, 22, 0.58));
       box-shadow: 24px 0 70px rgba(0, 0, 0, 0.28);
       backdrop-filter: blur(12px);
+      transition: width 220ms ease, background 220ms ease, box-shadow 220ms ease;
     }
 
     .status-strip {
+      width: 100%;
       display: flex;
       align-items: center;
       gap: 14px;
@@ -813,6 +761,15 @@
       border-left: 0;
       border-radius: 0 8px 8px 0;
       background: rgba(255, 255, 255, 0.06);
+      color: inherit;
+      text-align: left;
+      cursor: pointer;
+      transition: background 180ms ease, border-color 180ms ease;
+    }
+
+    .status-strip:hover {
+      border-color: rgba(72, 217, 255, 0.52);
+      background: rgba(72, 217, 255, 0.1);
     }
 
     .status-dot {
@@ -841,9 +798,30 @@
       display: block;
       margin-top: 5px;
       color: #c8f5ff;
-      font-size: 22px;
-      line-height: 1;
+      font-size: 17px;
+      line-height: 1.26;
       font-weight: 900;
+    }
+
+    .panel-body {
+      max-height: 620px;
+      opacity: 1;
+      transform: translateY(0);
+      transition: max-height 240ms ease, opacity 180ms ease, transform 220ms ease;
+    }
+
+    .scan-panel.collapsed {
+      width: min(350px, calc(100vw - 52px));
+      background: transparent;
+      box-shadow: none;
+      backdrop-filter: none;
+    }
+
+    .scan-panel.collapsed .panel-body {
+      max-height: 0;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-8px);
     }
 
     .found-count {
@@ -1011,34 +989,22 @@
 
     .legal-screen {
       min-height: 100vh;
-      color: var(--ink);
+      color: var(--text);
       background:
-        radial-gradient(circle at 50% 0%, rgba(72, 217, 255, 0.12), transparent 28%),
-        linear-gradient(135deg, #f4f6fb 0%, #edf1f7 100%);
+        radial-gradient(circle at 50% 18%, rgba(72, 217, 255, 0.18), transparent 32%),
+        radial-gradient(circle at 12% 86%, rgba(75, 54, 220, 0.18), transparent 34%),
+        linear-gradient(135deg, #0d1213 0%, #090d12 62%, #05070b 100%);
     }
 
     .legal-screen .site-header {
-      color: #111827;
-      border-bottom-color: rgba(15, 23, 42, 0.08);
-      background: rgba(255, 255, 255, 0.86);
+      color: var(--text);
+      border-bottom-color: rgba(255, 255, 255, 0.09);
+      background: rgba(16, 21, 23, 0.86);
     }
 
     .legal-screen .brand,
-    .legal-screen .profile-icon,
-    .legal-screen .nav {
-      color: #121826;
-    }
-
-    .legal-screen .nav span {
-      color: #4b5565;
-    }
-
-    .legal-screen .nav span.active {
-      color: var(--violet);
-    }
-
-    .legal-screen .nav span.active::after {
-      background: var(--violet);
+    .legal-screen .profile-icon {
+      color: var(--text);
     }
 
     .legal-main {
@@ -1055,8 +1021,9 @@
       display: grid;
       place-items: center;
       border-radius: 50%;
-      color: #695bf0;
-      background: #eee6ff;
+      color: var(--cyan);
+      background: rgba(72, 217, 255, 0.1);
+      box-shadow: 0 0 38px rgba(72, 217, 255, 0.2);
     }
 
     .legal-icon svg {
@@ -1077,7 +1044,7 @@
 
     .legal-main > p {
       margin: 0 auto 44px;
-      color: #5e6673;
+      color: #b9c0c8;
       font-size: clamp(18px, 2vw, 24px);
       line-height: 1.5;
       font-weight: 700;
@@ -1096,9 +1063,10 @@
       gap: 18px;
       align-items: start;
       padding: 24px 28px;
-      border: 1px solid #bcecca;
+      border: 1px solid rgba(72, 217, 255, 0.22);
       border-radius: 18px;
-      background: #effcf4;
+      background: rgba(16, 22, 31, 0.86);
+      box-shadow: 0 18px 54px rgba(0, 0, 0, 0.25);
     }
 
     .legal-check {
@@ -1106,16 +1074,16 @@
       height: 34px;
       display: grid;
       place-items: center;
-      border: 3px solid #48ad5d;
+      border: 3px solid var(--cyan);
       border-radius: 50%;
-      color: #48ad5d;
+      color: var(--cyan);
       font-size: 20px;
       font-weight: 900;
     }
 
     .legal-card h3 {
       margin: 0 0 8px;
-      color: #04111f;
+      color: #f4fbff;
       font-size: 23px;
       line-height: 1.22;
       font-weight: 900;
@@ -1127,15 +1095,15 @@
       margin-bottom: 13px;
       padding: 6px 12px;
       border-radius: 999px;
-      color: #27772f;
-      background: #dcfbe4;
+      color: #bdf5ff;
+      background: rgba(72, 217, 255, 0.12);
       font-size: 15px;
       font-weight: 800;
     }
 
     .legal-done {
       margin: 0;
-      color: #2e943b;
+      color: #7cf09b;
       font-size: 16px;
       font-weight: 900;
     }
@@ -1143,10 +1111,10 @@
     .legal-note {
       margin: 18px 0 32px;
       padding: 18px 20px;
-      border: 1px solid #decaff;
+      border: 1px solid rgba(72, 217, 255, 0.2);
       border-radius: 18px;
-      color: #4a168a;
-      background: #fbf7ff;
+      color: #c8f5ff;
+      background: rgba(255, 255, 255, 0.055);
       font-size: 17px;
       font-weight: 800;
     }
@@ -1170,27 +1138,12 @@
 
     @media (max-width: 900px) {
       .site-header,
-      .space-topbar,
-      .site-footer {
+      .space-topbar {
         grid-template-columns: 1fr auto;
       }
 
-      .nav {
-        display: none;
-      }
-
-      .profile-icon,
-      .footer-links {
+      .profile-icon {
         justify-self: end;
-      }
-
-      .site-footer {
-        align-content: center;
-        gap: 10px;
-      }
-
-      .site-footer > span:nth-child(2) {
-        display: none;
       }
 
       .scan-panel {
@@ -1233,18 +1186,6 @@
         width: min(100%, 300px);
       }
 
-      .site-footer {
-        grid-template-columns: 1fr;
-        justify-items: start;
-        padding: 22px 18px;
-      }
-
-      .footer-links {
-        justify-self: start;
-        flex-wrap: wrap;
-        gap: 16px;
-      }
-
       .scan-panel {
         left: 16px;
         top: 86px;
@@ -1284,7 +1225,7 @@
   <main class="app">
     <section id="homeScreen" class="screen home-screen active" aria-labelledby="homeTitle">
       <header class="site-header">
-        <a class="brand" href="#" aria-label="StarScan 홈">
+        <a class="brand" href="#" aria-label="Re;born 홈">
           <span class="brand-mark" aria-hidden="true">
             <svg viewBox="0 0 24 24">
               <path d="M4 8h16" />
@@ -1293,14 +1234,8 @@
               <path d="M16 4v16" />
             </svg>
           </span>
-          StarScan
+          Re;born
         </a>
-        <nav class="nav" aria-label="주요 메뉴">
-          <span class="active">Home</span>
-          <span>Dashboard</span>
-          <span>History</span>
-          <span>Profile</span>
-        </nav>
         <span class="profile-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="9" />
@@ -1345,16 +1280,6 @@
           업로드 이미지는 현재 브라우저 안에서만 미리보기로 사용됩니다.
         </p>
       </div>
-
-      <footer class="site-footer">
-        <span class="footer-brand">StarScan</span>
-        <span>© 2026 StarScan. Digital Sovereignty in the Deep Space.</span>
-        <span class="footer-links">
-          <span>Privacy Policy</span>
-          <span>Terms of Service</span>
-          <span>Legal Counsel</span>
-        </span>
-      </footer>
     </section>
 
     <section id="loadingScreen" class="screen loading-screen" aria-labelledby="loadingTitle">
@@ -1377,7 +1302,7 @@
     <section id="galaxyScreen" class="screen galaxy-screen" aria-labelledby="galaxyTitle">
       <div class="space-stars"></div>
       <header class="space-topbar">
-        <a class="brand" href="#" aria-label="StarScan 대시보드">
+        <a class="brand" href="#" aria-label="Re;born 대시보드">
           <span class="brand-mark" aria-hidden="true">
             <svg viewBox="0 0 24 24">
               <path d="M4 8h16" />
@@ -1386,43 +1311,39 @@
               <path d="M16 4v16" />
             </svg>
           </span>
-          StarScan
+          Re;born
         </a>
-        <nav class="nav" aria-label="주요 메뉴">
-          <span>Home</span>
-          <span class="active">Dashboard</span>
-          <span>History</span>
-          <span>Profile</span>
-        </nav>
         <button id="backHomeBtn" class="back-btn" type="button">처음으로</button>
       </header>
 
       <h1 id="galaxyTitle" class="nebula-title">디지털 우주</h1>
 
-      <aside class="scan-panel" aria-label="탐색 결과와 삭제 요청">
-        <div class="status-strip">
+      <aside id="scanPanel" class="scan-panel collapsed" aria-label="탐색 결과와 삭제 요청">
+        <button id="statusToggle" class="status-strip" type="button" aria-expanded="false" aria-controls="scanPanelBody">
           <span class="status-dot" aria-hidden="true">✓</span>
           <div>
             <span>Status</span>
-            <strong>Scanning Complete</strong>
+            <strong id="statusMessage">삭제요청을 보내고 싶은 별자리를 선택하세요</strong>
           </div>
-        </div>
-        <div class="found-count">
-          <strong id="foundDataCount">0</strong>
-          <span>찾은 데이터</span>
-        </div>
-        <div class="panel-section">
-          <div class="instruction-box">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M12 3v18" />
-              <path d="M8 7h8" />
-              <path d="M8 17h8" />
-              <path d="M6 12h12" />
-            </svg>
-            <span>별 하나를 선택하면 같은 별자리 전체에 삭제 요청을 시작할 수 있습니다.</span>
+        </button>
+        <div id="scanPanelBody" class="panel-body">
+          <div class="found-count">
+            <strong id="foundDataCount">0</strong>
+            <span>찾은 데이터</span>
           </div>
-          <div id="selectionSummary" class="selection-box"></div>
-          <button id="deleteRequestBtn" class="delete-btn" type="button" disabled>삭제 요청</button>
+          <div class="panel-section">
+            <div class="instruction-box">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 3v18" />
+                <path d="M8 7h8" />
+                <path d="M8 17h8" />
+                <path d="M6 12h12" />
+              </svg>
+              <span>별 하나를 선택하면 같은 별자리 전체에 삭제 요청을 시작할 수 있습니다.</span>
+            </div>
+            <div id="selectionSummary" class="selection-box"></div>
+            <button id="deleteRequestBtn" class="delete-btn" type="button" disabled>삭제 요청</button>
+          </div>
         </div>
       </aside>
 
@@ -1431,7 +1352,7 @@
 
     <section id="legalScreen" class="screen legal-screen" aria-labelledby="legalTitle">
       <header class="site-header">
-        <a class="brand" href="#" aria-label="StarScan 법적 서류 매칭">
+        <a class="brand" href="#" aria-label="Re;born 법적 서류 매칭">
           <span class="brand-mark" aria-hidden="true">
             <svg viewBox="0 0 24 24">
               <path d="M4 8h16" />
@@ -1440,14 +1361,8 @@
               <path d="M16 4v16" />
             </svg>
           </span>
-          StarScan
+          Re;born
         </a>
-        <nav class="nav" aria-label="주요 메뉴">
-          <span>Home</span>
-          <span class="active">Dashboard</span>
-          <span>History</span>
-          <span>Profile</span>
-        </nav>
         <span class="profile-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="9" />
@@ -1544,6 +1459,12 @@
       30: [8, 7, 8, 7],
       40: [10, 10, 10, 10]
     };
+    const LEGAL_ACTIONS = [
+      "정보통신망법 명예훼손",
+      "개인정보보호법 위반",
+      "초상권 침해",
+      "잊힐 권리 요청"
+    ];
     const LEGAL_STEPS = ["서류 발송", "사이트 관리자 확인 중", "블라인드 처리", "영구 삭제 완료"];
 
     const state = {
@@ -1558,7 +1479,9 @@
       uploadSeed: 0,
       uploadPreviewUrl: "",
       loadingInterval: null,
-      loadingTimer: null
+      loadingTimer: null,
+      scanPanelOpen: false,
+      legalActionByCluster: {}
     };
 
     const allData = generateDummyData();
@@ -1575,6 +1498,9 @@
     const scanButton = document.getElementById("scanButton");
     const loadingProgress = document.getElementById("loadingProgress");
     const galaxyStage = document.getElementById("galaxyStage");
+    const scanPanel = document.getElementById("scanPanel");
+    const statusToggle = document.getElementById("statusToggle");
+    const statusMessage = document.getElementById("statusMessage");
     const foundDataCount = document.getElementById("foundDataCount");
     const selectionSummary = document.getElementById("selectionSummary");
     const deleteRequestBtn = document.getElementById("deleteRequestBtn");
@@ -1584,6 +1510,8 @@
 
     bindUploadEvents();
     renderSelectionSummary([]);
+    syncScanPanel();
+    updateStatusMessage();
 
     backHomeBtn.addEventListener("click", () => {
       clearProgressTimers();
@@ -1595,6 +1523,11 @@
     });
 
     scanButton.addEventListener("click", startScan);
+
+    statusToggle.addEventListener("click", () => {
+      state.scanPanelOpen = !state.scanPanelOpen;
+      syncScanPanel();
+    });
 
     deleteRequestBtn.addEventListener("click", () => {
       if (state.selectedClusters.size === 0) return;
@@ -1735,6 +1668,7 @@
       state.deletingClusters.clear();
       state.activeProgressCluster = null;
       state.progressByCluster = {};
+      state.legalActionByCluster = {};
     }
 
     function getClusterSizes(count) {
@@ -1778,6 +1712,8 @@
       state.pendingDeletionClusters.clear();
       state.deletingClusters.clear();
       state.activeProgressCluster = null;
+      state.scanPanelOpen = false;
+      syncScanPanel();
       showScreen("galaxy");
       renderGalaxy();
     }
@@ -1862,6 +1798,7 @@
       const layout = buildLayout(allClusters);
 
       foundDataCount.textContent = activeItems.length;
+      updateStatusMessage();
       renderSelectionSummary(activeClusters, deletedItems.length);
       deleteRequestBtn.disabled = state.selectedClusters.size === 0 || state.pendingDeletionClusters.size > 0;
 
@@ -2016,22 +1953,44 @@
         });
 
       legalList.innerHTML = selectedClusters.map((cluster) => {
-        const platform = PLATFORMS[cluster.platformKey];
         return `
           <article class="legal-card">
             <span class="legal-check" aria-hidden="true">✓</span>
             <div>
-              <h3>${platform.name} · ${cluster.name}</h3>
-              <span class="legal-tag">${platform.action}</span>
-              <p class="legal-done">✓ 내용증명 작성 완료</p>
+              <h3>${cluster.name}</h3>
+              <span class="legal-tag">${getLegalActionForCluster(cluster)}</span>
+              <p class="legal-done">✓ 삭제 요청서 작성 완료</p>
             </div>
           </article>
         `;
       }).join("");
     }
 
+    function getLegalActionForCluster(cluster) {
+      if (!state.legalActionByCluster[cluster.clusterId]) {
+        const clusterParts = cluster.clusterId.split("-");
+        const clusterNumber = Number(clusterParts[clusterParts.length - 1]) || 1;
+        const seed = hashText(`${state.uploadSeed}-${state.currentPerson}-${cluster.platformKey}`);
+        const actionIndex = (seed + clusterNumber - 1) % LEGAL_ACTIONS.length;
+        state.legalActionByCluster[cluster.clusterId] = LEGAL_ACTIONS[actionIndex];
+      }
+
+      return state.legalActionByCluster[cluster.clusterId];
+    }
+
+    function hashText(text) {
+      let hash = 0;
+
+      for (let i = 0; i < text.length; i += 1) {
+        hash = (hash * 31 + text.charCodeAt(i)) >>> 0;
+      }
+
+      return hash;
+    }
+
     function showProgressForCluster(clusterId) {
       state.activeProgressCluster = clusterId;
+      updateStatusMessage();
 
       if (state.progressByCluster[clusterId] === undefined) {
         state.progressByCluster[clusterId] = 0;
@@ -2093,6 +2052,7 @@
       const visiblePieces = galaxyStage.querySelectorAll(`[data-cluster-id="${clusterId}"]`);
       visiblePieces.forEach((element) => element.classList.add("fade-out"));
       state.deletingClusters.add(clusterId);
+      updateStatusMessage();
 
       window.setTimeout(() => {
         allData
@@ -2110,6 +2070,18 @@
         delete state.progressByCluster[clusterId];
         renderGalaxy();
       }, 1400);
+    }
+
+    function syncScanPanel() {
+      scanPanel.classList.toggle("collapsed", !state.scanPanelOpen);
+      statusToggle.setAttribute("aria-expanded", String(state.scanPanelOpen));
+    }
+
+    function updateStatusMessage() {
+      const isDeleting = state.activeProgressCluster || Object.keys(state.progressTimers).length > 0 || state.deletingClusters.size > 0;
+      statusMessage.textContent = isDeleting
+        ? "삭제 진행 중입니다"
+        : "삭제요청을 보내고 싶은 별자리를 선택하세요";
     }
 
     function clearProgressTimers() {
