@@ -615,7 +615,6 @@
     }
 
     .center-node {
-      --ghost-shape: polygon(50% 1%, 61% 9%, 70% 16%, 80% 15%, 89% 27%, 86% 40%, 93% 50%, 82% 51%, 79% 79%, 67% 75%, 56% 88%, 44% 78%, 32% 86%, 21% 78%, 18% 51%, 7% 50%, 14% 40%, 11% 27%, 20% 15%, 30% 16%, 39% 9%);
       position: absolute;
       left: 50%;
       top: 51%;
@@ -625,10 +624,11 @@
       padding: 5px;
       display: grid;
       place-items: center;
+      border: 1px solid rgba(164, 239, 255, 0.32);
+      border-radius: 50%;
       color: #dffbff;
-      background: rgba(107, 230, 255, 0.82);
-      box-shadow: 0 0 34px rgba(72, 217, 255, 0.46);
-      clip-path: var(--ghost-shape);
+      background: rgba(47, 190, 223, 0.12);
+      box-shadow: 0 0 16px rgba(164, 239, 255, 0.2), 0 0 42px rgba(72, 217, 255, 0.28);
       transform: translate(-50%, -50%);
       text-align: center;
       overflow: hidden;
@@ -637,10 +637,11 @@
     .center-node::before {
       content: "";
       position: absolute;
-      inset: -8px;
-      background: rgba(47, 190, 223, 0.18);
-      clip-path: var(--ghost-shape);
-      box-shadow: inset 0 0 22px rgba(72, 217, 255, 0.28);
+      inset: -10px;
+      border: 14px solid rgba(122, 230, 255, 0.18);
+      border-radius: 50%;
+      filter: blur(10px);
+      box-shadow: inset 0 0 22px rgba(72, 217, 255, 0.2);
     }
 
     .center-node img {
@@ -649,8 +650,8 @@
       display: block;
       width: 100%;
       height: 100%;
+      border-radius: 50%;
       object-fit: cover;
-      clip-path: var(--ghost-shape);
       opacity: var(--center-opacity, 1);
       filter: saturate(1.05) contrast(1.03);
       transition: opacity 420ms ease;
@@ -1232,16 +1233,18 @@
 
     .completion-screen {
       position: relative;
-      min-height: 100vh;
+      min-height: 0;
+      height: 100vh;
       display: none;
       place-items: center;
       overflow: hidden;
-      padding: 28px 18px;
-      color: #26344f;
+      padding: clamp(10px, 2vh, 20px) 18px;
+      color: #eef6ff;
       background:
-        radial-gradient(circle at 16% 10%, rgba(126, 108, 246, 0.14), transparent 28%),
-        radial-gradient(circle at 86% 88%, rgba(72, 217, 255, 0.14), transparent 30%),
-        #f1f2f9;
+        radial-gradient(circle at 50% 18%, rgba(117, 104, 245, 0.42), transparent 25%),
+        radial-gradient(circle at 78% 70%, rgba(72, 217, 255, 0.22), transparent 30%),
+        radial-gradient(circle at 20% 82%, rgba(255, 79, 184, 0.14), transparent 30%),
+        linear-gradient(140deg, #030611 0%, #071423 54%, #02040a 100%);
     }
 
     .completion-screen.active {
@@ -1255,66 +1258,74 @@
       inset: 0;
       pointer-events: none;
       background:
-        radial-gradient(7px 3px at 12% 28%, rgba(250, 235, 86, 0.55), transparent 60%),
-        radial-gradient(8px 3px at 82% 26%, rgba(230, 103, 238, 0.45), transparent 62%),
-        radial-gradient(6px 3px at 38% 36%, rgba(141, 244, 98, 0.35), transparent 62%),
-        radial-gradient(5px 3px at 66% 40%, rgba(103, 204, 246, 0.38), transparent 62%),
-        radial-gradient(7px 3px at 23% 72%, rgba(255, 192, 96, 0.42), transparent 62%),
-        radial-gradient(6px 3px at 76% 80%, rgba(161, 112, 246, 0.4), transparent 62%);
+        radial-gradient(1px 1px at 9% 18%, rgba(255, 255, 255, 0.9), transparent 62%),
+        radial-gradient(2px 2px at 18% 64%, rgba(149, 225, 255, 0.62), transparent 62%),
+        radial-gradient(1px 1px at 31% 34%, rgba(255, 255, 255, 0.7), transparent 62%),
+        radial-gradient(2px 2px at 48% 76%, rgba(255, 255, 255, 0.55), transparent 62%),
+        radial-gradient(1px 1px at 64% 22%, rgba(187, 172, 255, 0.78), transparent 62%),
+        radial-gradient(2px 2px at 82% 42%, rgba(255, 255, 255, 0.64), transparent 62%),
+        radial-gradient(1px 1px at 92% 78%, rgba(72, 217, 255, 0.8), transparent 62%);
       opacity: 0.9;
     }
 
     .completion-screen::after {
-      transform: translateY(24px) rotate(8deg);
-      opacity: 0.65;
+      background:
+        radial-gradient(ellipse at 50% 42%, rgba(72, 217, 255, 0.16), transparent 34%),
+        radial-gradient(ellipse at 52% 52%, rgba(117, 104, 245, 0.14), transparent 48%);
+      filter: blur(18px);
+      transform: scale(1.08);
+      opacity: 1;
     }
 
     .completion-card {
       position: relative;
       z-index: 1;
-      width: min(784px, 100%);
-      min-height: min(960px, calc(100vh - 56px));
+      width: min(760px, 100%);
+      height: min(900px, calc(100vh - 24px));
       display: grid;
       align-content: center;
       justify-items: center;
-      padding: clamp(36px, 6vw, 56px);
-      border-radius: 34px;
-      background: rgba(255, 255, 255, 0.94);
-      box-shadow: 0 34px 96px rgba(56, 62, 94, 0.18);
+      padding: clamp(16px, 3vh, 32px) clamp(20px, 4vw, 44px);
+      border: 1px solid rgba(164, 239, 255, 0.24);
+      border-radius: 28px;
+      background: rgba(7, 13, 24, 0.82);
+      box-shadow: 0 34px 96px rgba(0, 0, 0, 0.36), inset 0 0 54px rgba(72, 217, 255, 0.08);
+      backdrop-filter: blur(18px);
       text-align: center;
     }
 
     .completion-badge {
-      width: 196px;
-      height: 196px;
-      margin-bottom: 40px;
+      width: clamp(92px, 14vh, 142px);
+      height: clamp(92px, 14vh, 142px);
+      margin-bottom: clamp(12px, 2vh, 22px);
       display: grid;
       place-items: center;
       border-radius: 50%;
-      color: #7568f5;
-      background: #eee4ff;
+      color: #a8f3ff;
+      background: rgba(72, 217, 255, 0.12);
+      box-shadow: 0 0 38px rgba(72, 217, 255, 0.2);
     }
 
     .completion-badge svg {
-      width: 96px;
-      height: 96px;
+      width: 54%;
+      height: 54%;
       stroke: currentColor;
       stroke-width: 2.5;
       fill: none;
     }
 
     .completion-card h1 {
-      margin: 0 0 20px;
-      color: #7568f5;
-      font-size: clamp(42px, 7vw, 64px);
+      margin: 0 0 clamp(6px, 1.2vh, 14px);
+      color: #a8f3ff;
+      font-size: clamp(32px, 7vh, 56px);
       line-height: 1;
       font-weight: 900;
     }
 
     .completion-card > p {
-      margin: 0 0 54px;
-      color: #2e3b55;
-      font-size: clamp(23px, 3vw, 32px);
+      margin: 0 0 clamp(14px, 3vh, 28px);
+      color: #dceeff;
+      font-size: clamp(18px, 3.2vh, 28px);
       line-height: 1.35;
       font-weight: 700;
       word-break: keep-all;
@@ -1323,40 +1334,40 @@
     .completion-stats {
       width: 100%;
       display: grid;
-      gap: 28px;
-      margin-bottom: 56px;
-      padding: 42px clamp(24px, 6vw, 84px);
-      border: 3px solid #dfccff;
-      border-radius: 26px;
-      background: rgba(245, 242, 255, 0.78);
+      gap: clamp(12px, 2vh, 20px);
+      margin-bottom: clamp(14px, 3vh, 26px);
+      padding: clamp(16px, 3vh, 28px) clamp(20px, 5vw, 62px);
+      border: 1px solid rgba(164, 239, 255, 0.26);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.06);
     }
 
     .completion-stat-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
+      gap: 18px;
     }
 
     .completion-stat strong {
       display: block;
-      color: #7568f5;
-      font-size: clamp(36px, 6vw, 52px);
+      color: #a8f3ff;
+      font-size: clamp(28px, 5.2vh, 46px);
       line-height: 1;
       font-weight: 900;
     }
 
     .completion-stat span {
       display: block;
-      margin-top: 10px;
-      color: #2e3b55;
-      font-size: 19px;
+      margin-top: 8px;
+      color: #dceeff;
+      font-size: clamp(14px, 2.2vh, 18px);
       font-weight: 700;
     }
 
     .reputation-zone {
       margin: 0;
-      color: #7568f5;
-      font-size: clamp(22px, 3vw, 28px);
+      color: #a8f3ff;
+      font-size: clamp(18px, 2.8vh, 24px);
       font-weight: 900;
     }
 
@@ -1365,11 +1376,11 @@
       display: grid;
       grid-template-columns: 42px 1fr;
       gap: 18px;
-      margin-bottom: 42px;
-      padding: 34px 36px;
-      border: 1px solid #dfccff;
-      border-radius: 22px;
-      background: rgba(250, 246, 255, 0.86);
+      margin-bottom: clamp(12px, 2.2vh, 22px);
+      padding: clamp(16px, 2.8vh, 26px) clamp(20px, 4vw, 30px);
+      border: 1px solid rgba(164, 239, 255, 0.22);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.06);
       text-align: left;
     }
 
@@ -1378,7 +1389,7 @@
       height: 34px;
       display: grid;
       place-items: center;
-      color: #8e30ff;
+      color: #a8f3ff;
     }
 
     .auto-scan-icon svg {
@@ -1390,17 +1401,17 @@
     }
 
     .auto-scan-card h2 {
-      margin: 0 0 10px;
-      color: #3f1474;
-      font-size: clamp(24px, 3vw, 30px);
+      margin: 0 0 8px;
+      color: #f4fbff;
+      font-size: clamp(19px, 3vh, 26px);
       line-height: 1.2;
       font-weight: 900;
     }
 
     .auto-scan-card p {
-      margin: 0 0 28px;
-      color: #7115f6;
-      font-size: clamp(18px, 2.5vw, 22px);
+      margin: 0 0 clamp(12px, 2vh, 18px);
+      color: #bcefff;
+      font-size: clamp(15px, 2.4vh, 20px);
       line-height: 1.45;
       font-weight: 700;
     }
@@ -1412,22 +1423,22 @@
     }
 
     .price-tags span {
-      padding: 8px 18px;
+      padding: 7px 16px;
       border-radius: 999px;
-      color: #7115f6;
-      background: #f0e7ff;
-      font-size: 18px;
+      color: #bcefff;
+      background: rgba(72, 217, 255, 0.12);
+      font-size: clamp(14px, 2vh, 17px);
       font-weight: 700;
     }
 
     .auto-scan-btn {
       width: 100%;
-      min-height: 98px;
-      border-radius: 22px;
-      color: #fff;
-      background: #7568f5;
-      box-shadow: 0 18px 48px rgba(117, 104, 245, 0.32);
-      font-size: clamp(24px, 3.5vw, 32px);
+      min-height: clamp(58px, 8vh, 82px);
+      border-radius: 18px;
+      color: #06111a;
+      background: linear-gradient(135deg, #8af0ff, #c4fbff);
+      box-shadow: 0 18px 48px rgba(72, 217, 255, 0.24);
+      font-size: clamp(19px, 3.2vh, 28px);
       font-weight: 900;
       cursor: pointer;
       transition: transform 180ms ease, box-shadow 180ms ease;
@@ -1439,10 +1450,10 @@
     }
 
     .completion-home-btn {
-      margin-top: 28px;
-      color: #677080;
+      margin-top: clamp(10px, 2vh, 20px);
+      color: #dceeff;
       background: transparent;
-      font-size: 23px;
+      font-size: clamp(17px, 2.8vh, 22px);
       font-weight: 800;
       cursor: pointer;
     }
@@ -1563,39 +1574,41 @@
       }
 
       .completion-card {
-        min-height: auto;
-        padding: 32px 22px;
+        height: calc(100vh - 20px);
+        padding: 18px 18px;
         border-radius: 24px;
       }
 
       .completion-badge {
-        width: 132px;
-        height: 132px;
-        margin-bottom: 28px;
+        width: 82px;
+        height: 82px;
+        margin-bottom: 12px;
       }
 
       .completion-badge svg {
-        width: 72px;
-        height: 72px;
+        width: 48px;
+        height: 48px;
       }
 
       .completion-stats {
-        gap: 22px;
-        margin-bottom: 34px;
-        padding: 28px 18px;
+        gap: 12px;
+        margin-bottom: 14px;
+        padding: 16px 14px;
       }
 
       .completion-stat-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
       }
 
       .auto-scan-card {
-        grid-template-columns: 1fr;
-        padding: 24px 22px;
+        grid-template-columns: 30px 1fr;
+        gap: 10px;
+        padding: 14px 14px;
       }
 
       .auto-scan-btn {
-        min-height: 76px;
+        min-height: 56px;
       }
     }
   </style>
@@ -1656,7 +1669,7 @@
             <rect x="6" y="10" width="12" height="10" rx="2" />
             <path d="M9 10V7a3 3 0 0 1 6 0v3" />
           </svg>
-          업로드 이미지는 현재 브라우저 안에서만 미리보기로 사용됩니다.
+          사용자는 더미 데이터를 통해 디지털 흔적 삭제 흐름을 미리 경험할 수 있습니다.
         </p>
       </div>
     </section>
@@ -1778,7 +1791,7 @@
           </svg>
         </div>
         <h1 id="completionTitle">축하합니다!</h1>
-        <p>당신의 완벽한 잊힐 권리가 회복되었습니다</p>
+        <p>기억은 남기고 흔적은 지웠습니다</p>
 
         <section class="completion-stats" aria-label="삭제 완료 결과">
           <div class="completion-stat-grid">
@@ -1795,7 +1808,7 @@
               <span>위험도</span>
             </div>
           </div>
-          <p class="reputation-zone">깨끗한 디지털 평판 달성 존</p>
+          <p class="reputation-zone">깨끗한 디지털 평판 달성</p>
         </section>
 
         <section class="auto-scan-card" aria-label="주기적 자동 스캔 서비스">
@@ -1888,20 +1901,20 @@
     const PLATFORM_KEYS = Object.keys(PLATFORMS);
     const CHIP_PLACEMENTS = {
       instagram: {
-        x: "clamp(-168px, -10vw, -138px)",
-        y: "clamp(-140px, -8vw, -114px)"
+        x: "clamp(-120px, -8vw, -100px)",
+        y: "clamp(-100px, -7vw, -82px)"
       },
       facebook: {
-        x: "clamp(138px, 10vw, 168px)",
-        y: "clamp(-140px, -8vw, -114px)"
+        x: "clamp(100px, 8vw, 120px)",
+        y: "clamp(-100px, -7vw, -82px)"
       },
       twitter: {
-        x: "clamp(138px, 10vw, 168px)",
-        y: "clamp(114px, 8vw, 140px)"
+        x: "clamp(100px, 8vw, 120px)",
+        y: "clamp(82px, 7vw, 100px)"
       },
       blog: {
-        x: "clamp(-168px, -10vw, -138px)",
-        y: "clamp(114px, 8vw, 140px)"
+        x: "clamp(-120px, -8vw, -100px)",
+        y: "clamp(82px, 7vw, 100px)"
       }
     };
     const DISTRIBUTIONS = {
@@ -2712,6 +2725,7 @@
 
     function returnHome() {
       clearProgressTimers();
+      resetUploadedFile();
       state.currentPerson = null;
       state.initialFoundCount = 0;
       state.selectedClusters.clear();
@@ -2728,6 +2742,20 @@
       scanPanel.classList.remove("hidden");
       syncScanPanel();
       showScreen("home");
+    }
+
+    function resetUploadedFile() {
+      if (state.uploadPreviewUrl) {
+        URL.revokeObjectURL(state.uploadPreviewUrl);
+      }
+
+      state.uploadPreviewUrl = "";
+      state.uploadSeed = 0;
+      imageInput.value = "";
+      uploadPreview.removeAttribute("src");
+      fileName.textContent = "";
+      uploadZone.classList.remove("has-file", "dragover");
+      scanButton.disabled = true;
     }
 
     function clearProgressTimers() {
