@@ -620,6 +620,7 @@
       z-index: 7;
       width: 92px;
       height: 92px;
+      padding: 4px;
       display: grid;
       place-items: center;
       border: 1px solid rgba(107, 230, 255, 0.82);
@@ -629,13 +630,29 @@
       box-shadow: 0 0 34px rgba(72, 217, 255, 0.46);
       transform: translate(-50%, -50%);
       text-align: center;
+      overflow: hidden;
     }
 
-    .center-node strong {
+    .center-node::before {
+      content: "";
+      position: absolute;
+      inset: -8px;
+      border-radius: inherit;
+      border: 1px solid rgba(72, 217, 255, 0.24);
+      box-shadow: inset 0 0 22px rgba(72, 217, 255, 0.28);
+    }
+
+    .center-node img {
+      position: relative;
+      z-index: 1;
       display: block;
-      font-size: 24px;
-      font-weight: 900;
-      letter-spacing: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      opacity: var(--center-opacity, 1);
+      filter: saturate(1.05) contrast(1.03);
+      transition: opacity 420ms ease;
     }
 
     .node {
@@ -733,8 +750,45 @@
       box-shadow: 0 0 24px color-mix(in srgb, var(--chip-color), transparent 66%);
       font-size: 12px;
       font-weight: 900;
-      transform: translate(-50%, -50%);
+      white-space: nowrap;
+      transform: translate(calc(-50% + var(--chip-offset-x, 0px)), calc(-50% + var(--chip-offset-y, 0px)));
       pointer-events: none;
+    }
+
+    .galaxy-notice {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 30;
+      width: min(438px, calc(100vw - 44px));
+      padding: 22px;
+      border: 1px solid rgba(72, 217, 255, 0.42);
+      border-radius: 8px;
+      color: #f4fbff;
+      background: rgba(7, 13, 22, 0.88);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.42), 0 0 38px rgba(72, 217, 255, 0.24);
+      backdrop-filter: blur(14px);
+      transform: translate(-50%, -50%);
+      text-align: left;
+    }
+
+    .galaxy-notice p {
+      margin: 0;
+      font-size: 17px;
+      line-height: 1.58;
+      font-weight: 800;
+      word-break: keep-all;
+    }
+
+    .notice-close {
+      width: 100%;
+      min-height: 40px;
+      margin-top: 18px;
+      border-radius: 8px;
+      color: #05121b;
+      background: linear-gradient(135deg, #8af0ff, #d7fbff);
+      font-weight: 900;
+      cursor: pointer;
     }
 
     .scan-panel {
@@ -1326,7 +1380,7 @@
         <button id="backHomeBtn" class="back-btn" type="button">처음으로</button>
       </header>
 
-      <h1 id="galaxyTitle" class="nebula-title">디지털 우주</h1>
+      <h1 id="galaxyTitle" class="sr-only">디지털 우주</h1>
 
       <aside id="scanPanel" class="scan-panel collapsed" aria-label="탐색 결과와 삭제 요청">
         <button id="statusToggle" class="status-strip" type="button" aria-expanded="false" aria-controls="scanPanelBody">
@@ -1465,6 +1519,24 @@
     };
 
     const PLATFORM_KEYS = Object.keys(PLATFORMS);
+    const CHIP_PLACEMENTS = {
+      instagram: {
+        x: "clamp(-128px, -8vw, -104px)",
+        y: "clamp(-108px, -7vw, -88px)"
+      },
+      facebook: {
+        x: "clamp(104px, 8vw, 128px)",
+        y: "clamp(-108px, -7vw, -88px)"
+      },
+      twitter: {
+        x: "clamp(104px, 8vw, 128px)",
+        y: "clamp(88px, 7vw, 108px)"
+      },
+      blog: {
+        x: "clamp(-128px, -8vw, -104px)",
+        y: "clamp(88px, 7vw, 108px)"
+      }
+    };
     const DISTRIBUTIONS = {
       30: [8, 7, 8, 7],
       40: [10, 10, 10, 10]
@@ -1488,9 +1560,11 @@
       progressTimers: {},
       uploadSeed: 0,
       uploadPreviewUrl: "",
+      initialFoundCount: 0,
       loadingInterval: null,
       loadingTimer: null,
       scanPanelOpen: false,
+      showGalaxyNotice: false,
       legalActionByCluster: {}
     };
 
@@ -1536,9 +1610,11 @@
     backHomeBtn.addEventListener("click", () => {
       clearProgressTimers();
       state.currentPerson = null;
+      state.initialFoundCount = 0;
       state.selectedClusters.clear();
       state.pendingDeletionClusters.clear();
       state.activeProgressCluster = null;
+      state.showGalaxyNotice = false;
       showScreen("home");
     });
 
@@ -1784,11 +1860,13 @@
 
     function openPerson(personName) {
       state.currentPerson = personName;
+      state.initialFoundCount = getCurrentItems(true).length;
       state.selectedClusters.clear();
       state.pendingDeletionClusters.clear();
       state.deletingClusters.clear();
       state.activeProgressCluster = null;
       state.scanPanelOpen = false;
+      state.showGalaxyNotice = true;
       syncScanPanel();
       showScreen("galaxy");
       renderGalaxy();
@@ -1872,6 +1950,7 @@
       const activeClusters = groupClusters(activeItems);
       const deletedItems = getCurrentItems(true).filter((item) => item.deleted);
       const layout = buildLayout(allClusters);
+      const centerOpacity = getCenterNodeOpacity(activeItems.length);
 
       foundDataCount.textContent = activeItems.length;
       updateStatusMessage();
@@ -1883,7 +1962,13 @@
       `).join("");
 
       const lineHtml = renderLineSvg(activeClusters, layout);
-      const chipHtml = renderPlatformChips(activeClusters, layout);
+      const chipHtml = renderPlatformChips(activeClusters);
+      const noticeHtml = state.showGalaxyNotice ? `
+        <div class="galaxy-notice" role="dialog" aria-live="polite" aria-label="별자리 생성 안내">
+          <p>이미지를 탐색하여 별자리가 생성되었습니다. STATUS 창을 옮겨 확인 하세요. 클릭해서 삭제요청을 보내보세요</p>
+          <button class="notice-close" type="button" data-notice-close>확인</button>
+        </div>
+      ` : "";
       const nodeHtml = activeItems.map((item) => {
         const position = layout.itemPositions[item.id];
         const platform = PLATFORMS[item.platformKey];
@@ -1912,9 +1997,12 @@
       galaxyStage.innerHTML = `
         ${starHtml}
         ${lineHtml}
-        <div class="center-node" aria-hidden="true"><strong>나</strong></div>
+        <div class="center-node" role="img" aria-label="업로드 이미지 중심 노드, 남은 데이터 ${activeItems.length}개, 최초 데이터 ${state.initialFoundCount}개" style="--center-opacity: ${centerOpacity}">
+          <img src="${state.uploadPreviewUrl}" alt="" />
+        </div>
         ${chipHtml}
         ${nodeHtml}
+        ${noticeHtml}
         <div id="progressPanelMount"></div>
       `;
 
@@ -1922,7 +2010,20 @@
         node.addEventListener("click", () => handleClusterClick(node.dataset.clusterId));
       });
 
+      const noticeClose = galaxyStage.querySelector("[data-notice-close]");
+      if (noticeClose) {
+        noticeClose.addEventListener("click", () => {
+          state.showGalaxyNotice = false;
+          renderGalaxy();
+        });
+      }
+
       if (state.activeProgressCluster) renderProgressPanel(state.activeProgressCluster);
+    }
+
+    function getCenterNodeOpacity(activeCount) {
+      const initialCount = state.initialFoundCount || getCurrentItems(true).length || activeCount || 1;
+      return clamp(activeCount / initialCount, 0, 1).toFixed(2);
     }
 
     function renderSelectionSummary(clusters, deletedCount = 0) {
@@ -1970,24 +2071,16 @@
       return `<svg class="galaxy-lines" aria-hidden="true">${clusterLines.join("")}</svg>`;
     }
 
-    function renderPlatformChips(clusters, layout) {
+    function renderPlatformChips(clusters) {
       return PLATFORM_KEYS.map((platformKey) => {
         const platformClusters = clusters.filter((cluster) => cluster.platformKey === platformKey);
         if (platformClusters.length === 0) return "";
 
         const platform = PLATFORMS[platformKey];
-        const center = platformClusters.reduce((acc, cluster) => {
-          const clusterCenter = layout.clusterCenters[cluster.clusterId];
-          acc.x += clusterCenter.x;
-          acc.y += clusterCenter.y;
-          return acc;
-        }, { x: 0, y: 0 });
-
-        center.x /= platformClusters.length;
-        center.y /= platformClusters.length;
+        const placement = CHIP_PLACEMENTS[platformKey];
 
         return `
-          <span class="platform-chip" style="left: ${center.x}%; top: ${Math.max(9, center.y - 14)}%; --chip-color: ${platform.color}">
+          <span class="platform-chip" style="left: 50%; top: 51%; --chip-offset-x: ${placement.x}; --chip-offset-y: ${placement.y}; --chip-color: ${platform.color}">
             ${platform.name}
           </span>
         `;
