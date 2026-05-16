@@ -602,6 +602,7 @@
       opacity: 0.94;
       stroke-width: 2;
       filter: drop-shadow(0 0 7px var(--line-color));
+      pointer-events: stroke;
     }
 
     .cluster-line.pending {
@@ -614,20 +615,20 @@
     }
 
     .center-node {
+      --ghost-shape: polygon(50% 1%, 61% 9%, 70% 16%, 80% 15%, 89% 27%, 86% 40%, 93% 50%, 82% 51%, 79% 79%, 67% 75%, 56% 88%, 44% 78%, 32% 86%, 21% 78%, 18% 51%, 7% 50%, 14% 40%, 11% 27%, 20% 15%, 30% 16%, 39% 9%);
       position: absolute;
       left: 50%;
       top: 51%;
       z-index: 7;
-      width: 92px;
-      height: 92px;
-      padding: 4px;
+      width: 138px;
+      height: 138px;
+      padding: 5px;
       display: grid;
       place-items: center;
-      border: 1px solid rgba(107, 230, 255, 0.82);
-      border-radius: 50%;
       color: #dffbff;
-      background: rgba(47, 190, 223, 0.18);
+      background: rgba(107, 230, 255, 0.82);
       box-shadow: 0 0 34px rgba(72, 217, 255, 0.46);
+      clip-path: var(--ghost-shape);
       transform: translate(-50%, -50%);
       text-align: center;
       overflow: hidden;
@@ -637,8 +638,8 @@
       content: "";
       position: absolute;
       inset: -8px;
-      border-radius: inherit;
-      border: 1px solid rgba(72, 217, 255, 0.24);
+      background: rgba(47, 190, 223, 0.18);
+      clip-path: var(--ghost-shape);
       box-shadow: inset 0 0 22px rgba(72, 217, 255, 0.28);
     }
 
@@ -648,8 +649,8 @@
       display: block;
       width: 100%;
       height: 100%;
-      border-radius: 50%;
       object-fit: cover;
+      clip-path: var(--ghost-shape);
       opacity: var(--center-opacity, 1);
       filter: saturate(1.05) contrast(1.03);
       transition: opacity 420ms ease;
@@ -791,6 +792,38 @@
       cursor: pointer;
     }
 
+    .completion-toast {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 42;
+      width: min(420px, calc(100vw - 48px));
+      padding: 28px 24px;
+      border: 1px solid rgba(139, 240, 255, 0.48);
+      border-radius: 8px;
+      color: #f8feff;
+      background: rgba(6, 13, 22, 0.92);
+      box-shadow: 0 26px 90px rgba(0, 0, 0, 0.48), 0 0 46px rgba(72, 217, 255, 0.28);
+      backdrop-filter: blur(14px);
+      transform: translate(-50%, -50%);
+      text-align: center;
+      font-size: clamp(24px, 4vw, 36px);
+      line-height: 1.25;
+      font-weight: 900;
+      animation: noticePop 260ms ease both;
+    }
+
+    @keyframes noticePop {
+      from {
+        opacity: 0;
+        transform: translate(-50%, -48%) scale(0.96);
+      }
+      to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+      }
+    }
+
     .scan-panel {
       position: absolute;
       left: clamp(26px, 4vw, 62px);
@@ -803,6 +836,10 @@
       box-shadow: 24px 0 70px rgba(0, 0, 0, 0.28);
       backdrop-filter: blur(12px);
       transition: width 220ms ease, background 220ms ease, box-shadow 220ms ease;
+    }
+
+    .scan-panel.hidden {
+      display: none;
     }
 
     .status-strip {
@@ -889,6 +926,9 @@
     }
 
     .found-count {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
       padding: 30px 0 26px;
     }
 
@@ -901,7 +941,6 @@
     }
 
     .found-count span {
-      margin-left: 8px;
       color: #d7d8dd;
       font-size: 26px;
       font-weight: 900;
@@ -1191,6 +1230,246 @@
       letter-spacing: 0;
     }
 
+    .completion-screen {
+      position: relative;
+      min-height: 100vh;
+      display: none;
+      place-items: center;
+      overflow: hidden;
+      padding: 28px 18px;
+      color: #26344f;
+      background:
+        radial-gradient(circle at 16% 10%, rgba(126, 108, 246, 0.14), transparent 28%),
+        radial-gradient(circle at 86% 88%, rgba(72, 217, 255, 0.14), transparent 30%),
+        #f1f2f9;
+    }
+
+    .completion-screen.active {
+      display: grid;
+    }
+
+    .completion-screen::before,
+    .completion-screen::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(7px 3px at 12% 28%, rgba(250, 235, 86, 0.55), transparent 60%),
+        radial-gradient(8px 3px at 82% 26%, rgba(230, 103, 238, 0.45), transparent 62%),
+        radial-gradient(6px 3px at 38% 36%, rgba(141, 244, 98, 0.35), transparent 62%),
+        radial-gradient(5px 3px at 66% 40%, rgba(103, 204, 246, 0.38), transparent 62%),
+        radial-gradient(7px 3px at 23% 72%, rgba(255, 192, 96, 0.42), transparent 62%),
+        radial-gradient(6px 3px at 76% 80%, rgba(161, 112, 246, 0.4), transparent 62%);
+      opacity: 0.9;
+    }
+
+    .completion-screen::after {
+      transform: translateY(24px) rotate(8deg);
+      opacity: 0.65;
+    }
+
+    .completion-card {
+      position: relative;
+      z-index: 1;
+      width: min(784px, 100%);
+      min-height: min(960px, calc(100vh - 56px));
+      display: grid;
+      align-content: center;
+      justify-items: center;
+      padding: clamp(36px, 6vw, 56px);
+      border-radius: 34px;
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: 0 34px 96px rgba(56, 62, 94, 0.18);
+      text-align: center;
+    }
+
+    .completion-badge {
+      width: 196px;
+      height: 196px;
+      margin-bottom: 40px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: #7568f5;
+      background: #eee4ff;
+    }
+
+    .completion-badge svg {
+      width: 96px;
+      height: 96px;
+      stroke: currentColor;
+      stroke-width: 2.5;
+      fill: none;
+    }
+
+    .completion-card h1 {
+      margin: 0 0 20px;
+      color: #7568f5;
+      font-size: clamp(42px, 7vw, 64px);
+      line-height: 1;
+      font-weight: 900;
+    }
+
+    .completion-card > p {
+      margin: 0 0 54px;
+      color: #2e3b55;
+      font-size: clamp(23px, 3vw, 32px);
+      line-height: 1.35;
+      font-weight: 700;
+      word-break: keep-all;
+    }
+
+    .completion-stats {
+      width: 100%;
+      display: grid;
+      gap: 28px;
+      margin-bottom: 56px;
+      padding: 42px clamp(24px, 6vw, 84px);
+      border: 3px solid #dfccff;
+      border-radius: 26px;
+      background: rgba(245, 242, 255, 0.78);
+    }
+
+    .completion-stat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    .completion-stat strong {
+      display: block;
+      color: #7568f5;
+      font-size: clamp(36px, 6vw, 52px);
+      line-height: 1;
+      font-weight: 900;
+    }
+
+    .completion-stat span {
+      display: block;
+      margin-top: 10px;
+      color: #2e3b55;
+      font-size: 19px;
+      font-weight: 700;
+    }
+
+    .reputation-zone {
+      margin: 0;
+      color: #7568f5;
+      font-size: clamp(22px, 3vw, 28px);
+      font-weight: 900;
+    }
+
+    .auto-scan-card {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 42px 1fr;
+      gap: 18px;
+      margin-bottom: 42px;
+      padding: 34px 36px;
+      border: 1px solid #dfccff;
+      border-radius: 22px;
+      background: rgba(250, 246, 255, 0.86);
+      text-align: left;
+    }
+
+    .auto-scan-icon {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      color: #8e30ff;
+    }
+
+    .auto-scan-icon svg {
+      width: 34px;
+      height: 34px;
+      stroke: currentColor;
+      stroke-width: 2.2;
+      fill: none;
+    }
+
+    .auto-scan-card h2 {
+      margin: 0 0 10px;
+      color: #3f1474;
+      font-size: clamp(24px, 3vw, 30px);
+      line-height: 1.2;
+      font-weight: 900;
+    }
+
+    .auto-scan-card p {
+      margin: 0 0 28px;
+      color: #7115f6;
+      font-size: clamp(18px, 2.5vw, 22px);
+      line-height: 1.45;
+      font-weight: 700;
+    }
+
+    .price-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .price-tags span {
+      padding: 8px 18px;
+      border-radius: 999px;
+      color: #7115f6;
+      background: #f0e7ff;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .auto-scan-btn {
+      width: 100%;
+      min-height: 98px;
+      border-radius: 22px;
+      color: #fff;
+      background: #7568f5;
+      box-shadow: 0 18px 48px rgba(117, 104, 245, 0.32);
+      font-size: clamp(24px, 3.5vw, 32px);
+      font-weight: 900;
+      cursor: pointer;
+      transition: transform 180ms ease, box-shadow 180ms ease;
+    }
+
+    .auto-scan-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 24px 58px rgba(117, 104, 245, 0.36);
+    }
+
+    .completion-home-btn {
+      margin-top: 28px;
+      color: #677080;
+      background: transparent;
+      font-size: 23px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .service-toast {
+      position: fixed;
+      left: 50%;
+      bottom: clamp(24px, 6vw, 58px);
+      z-index: 60;
+      padding: 16px 22px;
+      border-radius: 8px;
+      color: #fff;
+      background: rgba(34, 28, 86, 0.92);
+      box-shadow: 0 18px 50px rgba(34, 28, 86, 0.28);
+      font-size: 18px;
+      font-weight: 900;
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, 12px);
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+
+    .service-toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
     .sr-only {
       position: absolute;
       width: 1px;
@@ -1262,8 +1541,8 @@
       }
 
       .center-node {
-        width: 76px;
-        height: 76px;
+        width: 114px;
+        height: 114px;
       }
 
       .progress-panel {
@@ -1281,6 +1560,42 @@
         grid-template-columns: 30px 1fr;
         gap: 14px;
         padding: 20px;
+      }
+
+      .completion-card {
+        min-height: auto;
+        padding: 32px 22px;
+        border-radius: 24px;
+      }
+
+      .completion-badge {
+        width: 132px;
+        height: 132px;
+        margin-bottom: 28px;
+      }
+
+      .completion-badge svg {
+        width: 72px;
+        height: 72px;
+      }
+
+      .completion-stats {
+        gap: 22px;
+        margin-bottom: 34px;
+        padding: 28px 18px;
+      }
+
+      .completion-stat-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .auto-scan-card {
+        grid-template-columns: 1fr;
+        padding: 24px 22px;
+      }
+
+      .auto-scan-btn {
+        min-height: 76px;
       }
     }
   </style>
@@ -1392,8 +1707,8 @@
         </button>
         <div id="scanPanelBody" class="panel-body">
           <div class="found-count">
-            <strong id="foundDataCount">0</strong>
             <span>찾은 데이터</span>
+            <strong id="foundDataCount">0</strong>
           </div>
           <div class="panel-section">
             <div class="instruction-box">
@@ -1452,6 +1767,58 @@
         <p class="legal-note">각 플랫폼에 맞는 최적의 법적 조치를 자동으로 선택했어요</p>
         <button id="supernovaBtn" class="supernova-btn" type="button">초신성 폭발</button>
       </div>
+    </section>
+
+    <section id="completionScreen" class="screen completion-screen" aria-labelledby="completionTitle">
+      <article class="completion-card">
+        <div class="completion-badge" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 3.5c2.1 2 3.9 2.7 6.1 2.9v5.2c0 4.1-2.4 7.1-6.1 8.9-3.7-1.8-6.1-4.8-6.1-8.9V6.4c2.2-.2 4-.9 6.1-2.9z" />
+            <path d="m8.5 12.2 2.1 2.1 4.9-5" />
+          </svg>
+        </div>
+        <h1 id="completionTitle">축하합니다!</h1>
+        <p>당신의 완벽한 잊힐 권리가 회복되었습니다</p>
+
+        <section class="completion-stats" aria-label="삭제 완료 결과">
+          <div class="completion-stat-grid">
+            <div class="completion-stat">
+              <strong id="completionDeletedCount">0건</strong>
+              <span>삭제 완료</span>
+            </div>
+            <div class="completion-stat">
+              <strong>100%</strong>
+              <span>성공률</span>
+            </div>
+            <div class="completion-stat">
+              <strong>0%</strong>
+              <span>위험도</span>
+            </div>
+          </div>
+          <p class="reputation-zone">깨끗한 디지털 평판 달성 존</p>
+        </section>
+
+        <section class="auto-scan-card" aria-label="주기적 자동 스캔 서비스">
+          <span class="auto-scan-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M18 8a6 6 0 1 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
+              <path d="M10 21h4" />
+            </svg>
+          </span>
+          <div>
+            <h2>주기적 자동 스캔 서비스</h2>
+            <p>새로운 흔적이 생기면 즉시 알림을 받고 자동으로 제거해요</p>
+            <div class="price-tags">
+              <span>월 1,900원</span>
+              <span>첫 달 무료</span>
+            </div>
+          </div>
+        </section>
+
+        <button id="autoScanBtn" class="auto-scan-btn" type="button">주기적 자동 스캔 켜기</button>
+        <button id="completionHomeBtn" class="completion-home-btn" type="button">처음으로 돌아가기</button>
+      </article>
+      <div id="serviceToast" class="service-toast" role="status" aria-live="polite">서비스 개발 중입니다</div>
     </section>
   </main>
 
@@ -1521,20 +1888,20 @@
     const PLATFORM_KEYS = Object.keys(PLATFORMS);
     const CHIP_PLACEMENTS = {
       instagram: {
-        x: "clamp(-128px, -8vw, -104px)",
-        y: "clamp(-108px, -7vw, -88px)"
+        x: "clamp(-168px, -10vw, -138px)",
+        y: "clamp(-140px, -8vw, -114px)"
       },
       facebook: {
-        x: "clamp(104px, 8vw, 128px)",
-        y: "clamp(-108px, -7vw, -88px)"
+        x: "clamp(138px, 10vw, 168px)",
+        y: "clamp(-140px, -8vw, -114px)"
       },
       twitter: {
-        x: "clamp(104px, 8vw, 128px)",
-        y: "clamp(88px, 7vw, 108px)"
+        x: "clamp(138px, 10vw, 168px)",
+        y: "clamp(114px, 8vw, 140px)"
       },
       blog: {
-        x: "clamp(-128px, -8vw, -104px)",
-        y: "clamp(88px, 7vw, 108px)"
+        x: "clamp(-168px, -10vw, -138px)",
+        y: "clamp(114px, 8vw, 140px)"
       }
     };
     const DISTRIBUTIONS = {
@@ -1558,13 +1925,18 @@
       activeProgressCluster: null,
       progressByCluster: {},
       progressTimers: {},
+      autoDeletionDurations: {},
+      hoveredProgressCluster: null,
       uploadSeed: 0,
       uploadPreviewUrl: "",
       initialFoundCount: 0,
       loadingInterval: null,
       loadingTimer: null,
+      completionTimer: null,
+      serviceToastTimer: null,
       scanPanelOpen: false,
       showGalaxyNotice: false,
+      completionTransitionStarted: false,
       legalActionByCluster: {}
     };
 
@@ -1584,6 +1956,7 @@
     const loadingScreen = document.getElementById("loadingScreen");
     const galaxyScreen = document.getElementById("galaxyScreen");
     const legalScreen = document.getElementById("legalScreen");
+    const completionScreen = document.getElementById("completionScreen");
     const imageInput = document.getElementById("imageInput");
     const uploadZone = document.getElementById("uploadZone");
     const uploadPreview = document.getElementById("uploadPreview");
@@ -1600,6 +1973,10 @@
     const supernovaBtn = document.getElementById("supernovaBtn");
     const legalList = document.getElementById("legalList");
     const backHomeBtn = document.getElementById("backHomeBtn");
+    const completionDeletedCount = document.getElementById("completionDeletedCount");
+    const autoScanBtn = document.getElementById("autoScanBtn");
+    const completionHomeBtn = document.getElementById("completionHomeBtn");
+    const serviceToast = document.getElementById("serviceToast");
 
     bindUploadEvents();
     bindScanPanelDrag();
@@ -1607,16 +1984,7 @@
     syncScanPanel();
     updateStatusMessage();
 
-    backHomeBtn.addEventListener("click", () => {
-      clearProgressTimers();
-      state.currentPerson = null;
-      state.initialFoundCount = 0;
-      state.selectedClusters.clear();
-      state.pendingDeletionClusters.clear();
-      state.activeProgressCluster = null;
-      state.showGalaxyNotice = false;
-      showScreen("home");
-    });
+    backHomeBtn.addEventListener("click", returnHome);
 
     scanButton.addEventListener("click", startScan);
 
@@ -1638,11 +2006,19 @@
     });
 
     supernovaBtn.addEventListener("click", () => {
-      state.pendingDeletionClusters = new Set(state.selectedClusters);
+      const clusterIds = Array.from(state.selectedClusters);
+      if (clusterIds.length === 0) return;
+      state.pendingDeletionClusters = new Set(clusterIds);
       state.activeProgressCluster = null;
+      state.hoveredProgressCluster = null;
+      state.showGalaxyNotice = false;
+      startAutoDeletionTimers(clusterIds);
       showScreen("galaxy");
       renderGalaxy();
     });
+
+    autoScanBtn.addEventListener("click", showServiceToast);
+    completionHomeBtn.addEventListener("click", returnHome);
 
     function bindUploadEvents() {
       uploadZone.addEventListener("click", () => imageInput.click());
@@ -1819,7 +2195,11 @@
       state.pendingDeletionClusters.clear();
       state.deletingClusters.clear();
       state.activeProgressCluster = null;
+      state.hoveredProgressCluster = null;
       state.progressByCluster = {};
+      state.autoDeletionDurations = {};
+      state.completionTransitionStarted = false;
+      state.showGalaxyNotice = false;
       state.legalActionByCluster = {};
     }
 
@@ -1865,8 +2245,12 @@
       state.pendingDeletionClusters.clear();
       state.deletingClusters.clear();
       state.activeProgressCluster = null;
+      state.hoveredProgressCluster = null;
+      state.autoDeletionDurations = {};
+      state.completionTransitionStarted = false;
       state.scanPanelOpen = false;
       state.showGalaxyNotice = true;
+      scanPanel.classList.remove("hidden");
       syncScanPanel();
       showScreen("galaxy");
       renderGalaxy();
@@ -1878,6 +2262,7 @@
       loadingScreen.classList.toggle("active", screenName === "loading");
       galaxyScreen.classList.toggle("active", screenName === "galaxy");
       legalScreen.classList.toggle("active", screenName === "legal");
+      completionScreen.classList.toggle("active", screenName === "complete");
     }
 
     function getCurrentItems(includeDeleted = true) {
@@ -1952,6 +2337,7 @@
       const layout = buildLayout(allClusters);
       const centerOpacity = getCenterNodeOpacity(activeItems.length);
 
+      scanPanel.classList.toggle("hidden", activeItems.length === 0 || state.completionTransitionStarted);
       foundDataCount.textContent = activeItems.length;
       updateStatusMessage();
       renderSelectionSummary(activeClusters, deletedItems.length);
@@ -1965,9 +2351,17 @@
       const chipHtml = renderPlatformChips(activeClusters);
       const noticeHtml = state.showGalaxyNotice ? `
         <div class="galaxy-notice" role="dialog" aria-live="polite" aria-label="별자리 생성 안내">
-          <p>이미지를 탐색하여 별자리가 생성되었습니다. STATUS 창을 옮겨 확인 하세요. 클릭해서 삭제요청을 보내보세요</p>
+          <p>이미지를 탐색하여 별자리가 생성되었습니다. Status 창을 옮겨 확인하세요. 별자리를 클릭하여 삭제 요청을 보내보세요</p>
           <button class="notice-close" type="button" data-notice-close>확인</button>
         </div>
+      ` : "";
+      const centerNodeHtml = activeItems.length > 0 ? `
+        <div class="center-node" role="img" aria-label="업로드 이미지 중심 노드, 남은 데이터 ${activeItems.length}개, 최초 데이터 ${state.initialFoundCount}개" style="--center-opacity: ${centerOpacity}">
+          <img src="${state.uploadPreviewUrl}" alt="" />
+        </div>
+      ` : "";
+      const completionToastHtml = state.completionTransitionStarted ? `
+        <div class="completion-toast" role="status" aria-live="assertive">축하드립니다! re;born!</div>
       ` : "";
       const nodeHtml = activeItems.map((item) => {
         const position = layout.itemPositions[item.id];
@@ -1994,20 +2388,30 @@
         `;
       }).join("");
 
+      state.hoveredProgressCluster = null;
+
       galaxyStage.innerHTML = `
         ${starHtml}
         ${lineHtml}
-        <div class="center-node" role="img" aria-label="업로드 이미지 중심 노드, 남은 데이터 ${activeItems.length}개, 최초 데이터 ${state.initialFoundCount}개" style="--center-opacity: ${centerOpacity}">
-          <img src="${state.uploadPreviewUrl}" alt="" />
-        </div>
+        ${centerNodeHtml}
         ${chipHtml}
         ${nodeHtml}
         ${noticeHtml}
+        ${completionToastHtml}
         <div id="progressPanelMount"></div>
       `;
 
       galaxyStage.querySelectorAll(".node").forEach((node) => {
         node.addEventListener("click", () => handleClusterClick(node.dataset.clusterId));
+        node.addEventListener("mouseenter", () => showProgressPanelOnHover(node.dataset.clusterId));
+        node.addEventListener("mouseleave", () => clearProgressPanel(node.dataset.clusterId));
+        node.addEventListener("focus", () => showProgressPanelOnHover(node.dataset.clusterId));
+        node.addEventListener("blur", () => clearProgressPanel(node.dataset.clusterId));
+      });
+
+      galaxyStage.querySelectorAll(".cluster-line").forEach((line) => {
+        line.addEventListener("mouseenter", () => showProgressPanelOnHover(line.dataset.clusterId));
+        line.addEventListener("mouseleave", () => clearProgressPanel(line.dataset.clusterId));
       });
 
       const noticeClose = galaxyStage.querySelector("[data-notice-close]");
@@ -2018,7 +2422,6 @@
         });
       }
 
-      if (state.activeProgressCluster) renderProgressPanel(state.activeProgressCluster);
     }
 
     function getCenterNodeOpacity(activeCount) {
@@ -2091,11 +2494,6 @@
       const clusterItems = allData.filter((item) => item.clusterId === clusterId && !item.deleted);
       if (clusterItems.length === 0 || state.deletingClusters.has(clusterId)) return;
 
-      if (state.pendingDeletionClusters.has(clusterId)) {
-        showProgressForCluster(clusterId);
-        return;
-      }
-
       if (state.pendingDeletionClusters.size > 0) return;
 
       if (state.selectedClusters.has(clusterId)) {
@@ -2157,35 +2555,51 @@
       return hash;
     }
 
-    function showProgressForCluster(clusterId) {
-      state.activeProgressCluster = clusterId;
-      updateStatusMessage();
+    function startAutoDeletionTimers(clusterIds) {
+      clusterIds.forEach((clusterId) => {
+        if (state.progressTimers[clusterId]) return;
 
-      if (state.progressByCluster[clusterId] === undefined) {
+        const duration = 4000 + Math.floor(Math.random() * 4001);
+        const stepDelay = duration / LEGAL_STEPS.length;
+        state.autoDeletionDurations[clusterId] = duration;
         state.progressByCluster[clusterId] = 0;
-      }
 
+        state.progressTimers[clusterId] = window.setInterval(() => {
+          const current = state.progressByCluster[clusterId] || 0;
+          const next = Math.min(current + 1, LEGAL_STEPS.length);
+          state.progressByCluster[clusterId] = next;
+          allData
+            .filter((item) => item.clusterId === clusterId)
+            .forEach((item) => {
+              item.progressStep = next;
+            });
+
+          if (state.hoveredProgressCluster === clusterId) {
+            renderProgressPanel(clusterId);
+          }
+
+          if (next === LEGAL_STEPS.length) {
+            window.clearInterval(state.progressTimers[clusterId]);
+            delete state.progressTimers[clusterId];
+            window.setTimeout(() => completeDeletion(clusterId), 220);
+          }
+        }, stepDelay);
+      });
+
+      updateStatusMessage();
+    }
+
+    function showProgressPanelOnHover(clusterId) {
+      if (!clusterId || !state.pendingDeletionClusters.has(clusterId)) return;
+      state.hoveredProgressCluster = clusterId;
       renderProgressPanel(clusterId);
+    }
 
-      if (state.progressTimers[clusterId]) return;
-
-      state.progressTimers[clusterId] = window.setInterval(() => {
-        const current = state.progressByCluster[clusterId] || 0;
-        const next = Math.min(current + 1, LEGAL_STEPS.length);
-        state.progressByCluster[clusterId] = next;
-        allData
-          .filter((item) => item.clusterId === clusterId)
-          .forEach((item) => {
-            item.progressStep = next;
-          });
-        renderProgressPanel(clusterId);
-
-        if (next === LEGAL_STEPS.length) {
-          window.clearInterval(state.progressTimers[clusterId]);
-          delete state.progressTimers[clusterId];
-          window.setTimeout(() => completeDeletion(clusterId), 450);
-        }
-      }, 1050);
+    function clearProgressPanel(clusterId) {
+      if (state.hoveredProgressCluster !== clusterId) return;
+      state.hoveredProgressCluster = null;
+      const mount = document.getElementById("progressPanelMount");
+      if (mount) mount.innerHTML = "";
     }
 
     function renderProgressPanel(clusterId) {
@@ -2236,9 +2650,52 @@
         state.pendingDeletionClusters.delete(clusterId);
         state.deletingClusters.delete(clusterId);
         state.activeProgressCluster = null;
+        if (state.hoveredProgressCluster === clusterId) {
+          state.hoveredProgressCluster = null;
+        }
         delete state.progressByCluster[clusterId];
+
+        if (getActiveItems().length === 0) {
+          startCompletionTransition();
+          return;
+        }
+
         renderGalaxy();
       }, 1400);
+    }
+
+    function startCompletionTransition() {
+      if (state.completionTransitionStarted) return;
+
+      state.completionTransitionStarted = true;
+      state.scanPanelOpen = false;
+      state.selectedClusters.clear();
+      state.pendingDeletionClusters.clear();
+      state.deletingClusters.clear();
+      state.hoveredProgressCluster = null;
+      syncScanPanel();
+      renderGalaxy();
+
+      window.clearTimeout(state.completionTimer);
+      state.completionTimer = window.setTimeout(() => {
+        state.completionTimer = null;
+        showCompletionScreen();
+      }, 3000);
+    }
+
+    function showCompletionScreen() {
+      const deletedCount = state.initialFoundCount || getCurrentItems(true).filter((item) => item.deleted).length;
+      completionDeletedCount.textContent = `${deletedCount}건`;
+      showScreen("complete");
+    }
+
+    function showServiceToast() {
+      serviceToast.classList.add("show");
+      window.clearTimeout(state.serviceToastTimer);
+      state.serviceToastTimer = window.setTimeout(() => {
+        serviceToast.classList.remove("show");
+        state.serviceToastTimer = null;
+      }, 2000);
     }
 
     function syncScanPanel() {
@@ -2247,10 +2704,30 @@
     }
 
     function updateStatusMessage() {
-      const isDeleting = state.activeProgressCluster || Object.keys(state.progressTimers).length > 0 || state.deletingClusters.size > 0;
+      const isDeleting = state.pendingDeletionClusters.size > 0 || Object.keys(state.progressTimers).length > 0 || state.deletingClusters.size > 0;
       statusMessage.textContent = isDeleting
         ? "삭제 진행 중입니다"
         : "삭제요청을 보내고 싶은 별자리를 선택하세요";
+    }
+
+    function returnHome() {
+      clearProgressTimers();
+      state.currentPerson = null;
+      state.initialFoundCount = 0;
+      state.selectedClusters.clear();
+      state.pendingDeletionClusters.clear();
+      state.deletingClusters.clear();
+      state.activeProgressCluster = null;
+      state.hoveredProgressCluster = null;
+      state.progressByCluster = {};
+      state.autoDeletionDurations = {};
+      state.scanPanelOpen = false;
+      state.showGalaxyNotice = false;
+      state.completionTransitionStarted = false;
+      serviceToast.classList.remove("show");
+      scanPanel.classList.remove("hidden");
+      syncScanPanel();
+      showScreen("home");
     }
 
     function clearProgressTimers() {
@@ -2258,6 +2735,10 @@
       state.progressTimers = {};
       window.clearInterval(state.loadingInterval);
       window.clearTimeout(state.loadingTimer);
+      window.clearTimeout(state.completionTimer);
+      window.clearTimeout(state.serviceToastTimer);
+      state.completionTimer = null;
+      state.serviceToastTimer = null;
     }
 
     function clamp(value, min, max) {
