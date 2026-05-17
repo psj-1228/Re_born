@@ -1714,12 +1714,12 @@
           <span class="status-dot" aria-hidden="true"></span>
           <div>
             <span>Status</span>
-            <strong id="statusMessage">삭제요청을 보내고 싶은 별자리를 선택하세요</strong>
+            <strong id="statusMessage">삭제요청을 보내고 싶은 별자리를 선택하세요.</strong>
           </div>
         </button>
         <div id="scanPanelBody" class="panel-body">
           <div class="found-count">
-            <span>찾은 데이터</span>
+            <span style="margin-left:16px;">찾은 데이터</span>
             <strong id="foundDataCount">0</strong>
           </div>
           <div class="panel-section">
@@ -1777,7 +1777,7 @@
         <p>복잡한 법은 몰라도 돼요. AI가 모든 것을 대행해 드려요.</p>
         <div id="legalList" class="legal-list"></div>
         <p class="legal-note">각 플랫폼에 맞는 최적의 법적 조치를 자동으로 선택했어요</p>
-        <button id="supernovaBtn" class="supernova-btn" type="button">초신성 폭발</button>
+        <button id="supernovaBtn" class="supernova-btn" type="button">별자리가 흩어집니다.</button>
       </div>
     </section>
 
@@ -1789,8 +1789,7 @@
             <path d="m8.5 12.2 2.1 2.1 4.9-5" />
           </svg>
         </div>
-        <h1 id="completionTitle">축하합니다!</h1>
-        <p>기억은 남기고 흔적은 지웠습니다</p>
+        <h2 id="completionTitle">기억은 남기고 흔적은 지웠습니다!</h2>
 
         <section class="completion-stats" aria-label="삭제 완료 결과">
           <div class="completion-stat-grid">
@@ -1835,6 +1834,7 @@
   </main>
 
   <script>
+    //에스파 화이팅
     const PEOPLE = [
       { key: "karina", name: "카리나", count: 30 },
       { key: "winter", name: "윈터", count: 40 },
@@ -2362,8 +2362,11 @@
       const lineHtml = renderLineSvg(activeClusters, layout);
       const chipHtml = renderPlatformChips(activeClusters);
       const noticeHtml = state.showGalaxyNotice ? `
-        <div class="galaxy-notice" role="dialog" aria-live="polite" aria-label="별자리 생성 안내">
-          <p>이미지를 탐색하여 별자리가 생성되었습니다. Status 창을 옮겨 확인하세요. 별자리를 클릭하여 삭제 요청을 보내보세요</p>
+        <div class="galaxy-notice" role="dialog" aria-live="polite" aria-label="별자리 생성 안내"   style="display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;">
+          <p> 이미지를 탐색하여 별자리가 생성되었습니다. </p>
+          <div> STATUS 창은 드래그하여 이동할 수 있습니다.</div>
+          <div>클릭 시 탐색 현황, 삭제 현황, 삭제 요청 기능이 표시됩니다.</div>
+          <div> 별자리를 클릭해서 삭제 요청을 보내보세요! </div>
           <button class="notice-close" type="button" data-notice-close>확인</button>
         </div>
       ` : "";
@@ -2444,7 +2447,7 @@
     function renderSelectionSummary(clusters, deletedCount = 0) {
       const selectedClusters = clusters.filter((cluster) => state.selectedClusters.has(cluster.clusterId));
       const selectedItems = selectedClusters.reduce((sum, cluster) => sum + cluster.items.length, 0);
-      const pendingText = state.pendingDeletionClusters.size > 0 ? "초신성 이후 재클릭 대기" : "삭제 요청 전";
+      const pendingText = state.pendingDeletionClusters.size > 0 ? "디지털 흔적이 흐려지고 있습니다." : "삭제 요청 전 입니다.";
 
       selectionSummary.innerHTML = `
         <div class="summary-row"><span>선택된 별자리</span><strong>${selectedClusters.length}개</strong></div>
@@ -2719,7 +2722,7 @@
       const isDeleting = state.pendingDeletionClusters.size > 0 || Object.keys(state.progressTimers).length > 0 || state.deletingClusters.size > 0;
       statusMessage.textContent = isDeleting
         ? "삭제 진행 중입니다"
-        : "삭제요청을 보내고 싶은 별자리를 선택하세요";
+        : "삭제요청을 보내고 싶은 별을 선택하세요";
     }
 
     function returnHome() {
